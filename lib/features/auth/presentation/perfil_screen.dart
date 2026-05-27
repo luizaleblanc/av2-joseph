@@ -1,12 +1,25 @@
 import 'package:flutter/material.dart';
-import '../models/perfil_usuario.dart';
+import '../domain/perfil_usuario.dart';
 
-class PerfilScreen extends StatelessWidget {
+class PerfilScreen extends StatefulWidget {
   final PerfilUsuario perfil;
 
   const PerfilScreen({super.key, required this.perfil});
 
-  bool get _isAdmin => perfil == PerfilUsuario.administrador;
+  @override
+  State<PerfilScreen> createState() => _PerfilScreenState();
+}
+
+class _PerfilScreenState extends State<PerfilScreen> {
+  late PerfilUsuario _perfilAtual;
+
+  @override
+  void initState() {
+    super.initState();
+    _perfilAtual = widget.perfil;
+  }
+
+  bool get _isAdmin => _perfilAtual == PerfilUsuario.administrador;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +36,13 @@ class PerfilScreen extends StatelessWidget {
           ];
 
     return Scaffold(
-      appBar: AppBar(title: Text(_isAdmin ? 'Perfil ADM' : 'Perfil')),
+      appBar: AppBar(
+        title: Text(_isAdmin ? 'Perfil ADM' : 'Perfil'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context, _perfilAtual),
+        ),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -36,16 +55,35 @@ class PerfilScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    radius: 32,
-                    backgroundColor: _isAdmin
-                        ? const Color(0xFFE61E4D)
-                        : const Color(0xFF0B5FFF),
-                    child: Icon(
-                      _isAdmin ? Icons.admin_panel_settings : Icons.visibility,
-                      color: Colors.white,
-                      size: 34,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CircleAvatar(
+                        radius: 32,
+                        backgroundColor: _isAdmin
+                            ? const Color(0xFFE61E4D)
+                            : const Color(0xFF0B5FFF),
+                        child: Icon(
+                          _isAdmin
+                              ? Icons.admin_panel_settings
+                              : Icons.visibility,
+                          color: Colors.white,
+                          size: 34,
+                        ),
+                      ),
+                      Switch(
+                        value: _isAdmin,
+                        activeThumbColor: const Color(0xFFE61E4D),
+                        inactiveThumbColor: const Color(0xFF0B5FFF),
+                        onChanged: (value) {
+                          setState(() {
+                            _perfilAtual = value
+                                ? PerfilUsuario.administrador
+                                : PerfilUsuario.telespectador;
+                          });
+                        },
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 18),
                   Text(

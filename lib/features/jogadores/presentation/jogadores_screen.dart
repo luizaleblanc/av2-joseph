@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
+import '../../../core/network/api_service.dart';
+import '../data/jogador_repository.dart';
+import '../domain/jogador_model.dart';
 
 class JogadoresScreen extends StatefulWidget {
   final bool canEdit;
@@ -11,48 +13,38 @@ class JogadoresScreen extends StatefulWidget {
 }
 
 class _JogadoresScreenState extends State<JogadoresScreen> {
-  final ApiService _apiService = ApiService();
-  List<dynamic> _jogadores = [];
+  late final JogadorRepository _repository;
+
+  List<JogadorModel> _jogadores = [];
   bool _carregando = true;
 
   @override
   void initState() {
     super.initState();
+    _repository = JogadorRepository(ApiService());
     _buscarJogadores();
   }
 
   Future<void> _buscarJogadores() async {
-    setState(() {
-      _carregando = true;
-    });
+    setState(() => _carregando = true);
 
-    final dados = await _apiService.fetchJogadores();
+    final jogadores = await _repository.obterJogadores();
+
     if (!mounted) return;
-
     setState(() {
-      _jogadores = dados;
+      _jogadores = jogadores;
       _carregando = false;
     });
   }
 
-  int _idJogador(dynamic jogador) {
-    return int.tryParse('${jogador['idJogador']}') ?? 0;
-  }
-
-  int _idTime(dynamic jogador) {
-    return int.tryParse('${jogador['idTimeFk']}') ?? 0;
-  }
-
-  Future<void> _exibirFormulario({dynamic jogador}) async {
+  Future<void> _exibirFormulario({JogadorModel? jogador}) async {
     final editando = jogador != null;
-    final nomeController = TextEditingController(
-      text: editando ? '${jogador['nomeJogador'] ?? ''}' : '',
-    );
+    final nomeController = TextEditingController(text: jogador?.nome ?? '');
     final posicaoController = TextEditingController(
-      text: editando ? '${jogador['posicaoJogador'] ?? ''}' : '',
+      text: jogador?.posicao ?? '',
     );
     final idTimeController = TextEditingController(
-      text: editando ? '${jogador['idTimeFk'] ?? ''}' : '',
+      text: editando ? jogador.idEquipe.toString() : '',
     );
 
     await showModalBottomSheet(
@@ -78,7 +70,7 @@ class _JogadoresScreenState extends State<JogadoresScreen> {
             ),
             TextField(
               controller: posicaoController,
-              decoration: const InputDecoration(labelText: 'Posicao'),
+              decoration: const InputDecoration(labelText: 'Posição'),
             ),
             TextField(
               controller: idTimeController,
@@ -91,28 +83,31 @@ class _JogadoresScreenState extends State<JogadoresScreen> {
                 final nome = nomeController.text.trim();
                 final posicao = posicaoController.text.trim();
                 final idTime = int.tryParse(idTimeController.text.trim());
+
                 if (nome.isEmpty || posicao.isEmpty || idTime == null) return;
 
                 final sucesso = editando
-                    ? await _apiService.atualizarJogador(
-                        _idJogador(jogador),
+                    ? await _repository.atualizarJogador(
+                        jogador.id,
                         nome,
                         posicao,
                         idTime,
                       )
-                    : await _apiService.cadastrarJogador(nome, posicao, idTime);
+                    : await _repository.salvarJogador(nome, posicao, idTime);
 
                 if (!context.mounted) return;
                 Navigator.pop(context);
+
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
                       sucesso
                           ? 'Jogador salvo com sucesso!'
-                          : 'Erro ao salvar. Verifique se o ID da equipe existe.',
+                          : 'Erro ao salvar. Verifique o ID da equipe.',
                     ),
                   ),
                 );
+
                 if (sucesso) _buscarJogadores();
               },
               child: const Text('Salvar'),
@@ -124,14 +119,12 @@ class _JogadoresScreenState extends State<JogadoresScreen> {
     );
   }
 
-  Future<void> _confirmarExclusao(dynamic jogador) async {
+  Future<void> _confirmarExclusao(JogadorModel jogador) async {
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Excluir Jogador'),
-        content: Text(
-          'Deseja excluir ${jogador['nomeJogador'] ?? 'este jogador'}?',
-        ),
+        content: Text('Deseja excluir o jogador ${jogador.nome}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -147,16 +140,12 @@ class _JogadoresScreenState extends State<JogadoresScreen> {
 
     if (confirmar != true) return;
 
-    final sucesso = await _apiService.deletarJogador(_idJogador(jogador));
+    final sucesso = await _repository.removerJogador(jogador.id);
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          sucesso
-              ? 'Jogador excluido com sucesso!'
-              : 'Erro ao excluir jogador.',
-        ),
+        content: Text(sucesso ? 'Jogador excluído!' : 'Erro ao excluir.'),
       ),
     );
     if (sucesso) _buscarJogadores();
@@ -166,7 +155,7 @@ class _JogadoresScreenState extends State<JogadoresScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.canEdit ? 'Gerenciar Jogadores' : 'Jogadores'),
+        title: Text(widget.canEdit ? 'Gerir Jogadores' : 'Jogadores'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -184,7 +173,7 @@ class _JogadoresScreenState extends State<JogadoresScreen> {
                   const Icon(Icons.person_off, size: 64, color: Colors.grey),
                   const SizedBox(height: 16),
                   Text(
-                    'Nenhum jogador registrado no banco de dados.',
+                    'Nenhum jogador registado.',
                     style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                   ),
                 ],
@@ -201,9 +190,9 @@ class _JogadoresScreenState extends State<JogadoresScreen> {
                   ),
                   child: ListTile(
                     leading: const CircleAvatar(child: Icon(Icons.person)),
-                    title: Text(jogador['nomeJogador'] ?? 'Sem Nome'),
+                    title: Text(jogador.nome),
                     subtitle: Text(
-                      'Posicao: ${jogador['posicaoJogador'] ?? 'N/A'} | Equipe ID: ${_idTime(jogador)}',
+                      'Posição: ${jogador.posicao} | Equipe ID: ${jogador.idEquipe}',
                     ),
                     trailing: widget.canEdit
                         ? Wrap(

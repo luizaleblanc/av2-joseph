@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/login_screen.dart';
+import 'package:flutter_campeonato_flutter/features/auth/presentation/login_screen.dart';
 
 void main() {
   runApp(const CopaDoMundoApp());
