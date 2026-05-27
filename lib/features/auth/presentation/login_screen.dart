@@ -25,7 +25,7 @@ class _LoginScreenContentState extends State<LoginScreenContent> {
   final _senhaController = TextEditingController();
   final _nomeController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  
+
   LoginMode _modo = LoginMode.entrar;
   bool _admin = false;
 
@@ -47,7 +47,9 @@ class _LoginScreenContentState extends State<LoginScreenContent> {
         return;
       }
 
-      final perfil = _admin ? PerfilUsuario.administrador : PerfilUsuario.telespectador;
+      final perfil = _admin
+          ? PerfilUsuario.administrador
+          : PerfilUsuario.telespectador;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -59,9 +61,12 @@ class _LoginScreenContentState extends State<LoginScreenContent> {
 
   String get _botaoPrincipal {
     switch (_modo) {
-      case LoginMode.cadastro: return 'Cadastrar e entrar';
-      case LoginMode.recuperar: return 'Enviar recuperação';
-      case LoginMode.entrar: return 'Entrar';
+      case LoginMode.cadastro:
+        return 'Cadastrar e entrar';
+      case LoginMode.recuperar:
+        return 'Enviar recuperação';
+      case LoginMode.entrar:
+        return 'Entrar';
     }
   }
 
@@ -80,7 +85,7 @@ class _LoginScreenContentState extends State<LoginScreenContent> {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.25),
+                  color: Colors.black.withValues(alpha: 0.25),
                   blurRadius: 30,
                   offset: const Offset(0, 15),
                 ),
@@ -111,7 +116,11 @@ class _LoginScreenContentState extends State<LoginScreenContent> {
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.badge_outlined),
                       ),
-                      validator: (v) => _modo == LoginMode.cadastro && (v == null || v.isEmpty) ? 'Informe o seu nome' : null,
+                      validator: (v) =>
+                          _modo == LoginMode.cadastro &&
+                              (v == null || v.isEmpty)
+                          ? 'Informe o seu nome'
+                          : null,
                     ),
                     const SizedBox(height: 16),
                   ],
@@ -123,7 +132,8 @@ class _LoginScreenContentState extends State<LoginScreenContent> {
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.email_outlined),
                     ),
-                    validator: (v) => v == null || v.isEmpty ? 'Informe o seu e-mail' : null,
+                    validator: (v) =>
+                        v == null || v.isEmpty ? 'Informe o seu e-mail' : null,
                   ),
                   if (_modo != LoginMode.recuperar) ...[
                     const SizedBox(height: 16),
@@ -135,7 +145,8 @@ class _LoginScreenContentState extends State<LoginScreenContent> {
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.lock_outline),
                       ),
-                      validator: (v) => v == null || v.isEmpty ? 'Informe a sua senha' : null,
+                      validator: (v) =>
+                          v == null || v.isEmpty ? 'Informe a sua senha' : null,
                     ),
                   ],
                   if (_modo == LoginMode.cadastro) ...[
@@ -144,7 +155,10 @@ class _LoginScreenContentState extends State<LoginScreenContent> {
                       segments: const [
                         ButtonSegment(
                           value: false,
-                          label: Text('Telespectador', style: TextStyle(fontSize: 12)),
+                          label: Text(
+                            'Telespectador',
+                            style: TextStyle(fontSize: 12),
+                          ),
                           icon: Icon(Icons.check, size: 16),
                         ),
                         ButtonSegment(
@@ -154,9 +168,12 @@ class _LoginScreenContentState extends State<LoginScreenContent> {
                         ),
                       ],
                       selected: {_admin},
-                      onSelectionChanged: (v) => setState(() => _admin = v.first),
+                      onSelectionChanged: (v) =>
+                          setState(() => _admin = v.first),
                       style: SegmentedButton.styleFrom(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                     ),
                   ],
@@ -173,7 +190,10 @@ class _LoginScreenContentState extends State<LoginScreenContent> {
                     ),
                     child: Text(
                       _botaoPrincipal,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -182,14 +202,31 @@ class _LoginScreenContentState extends State<LoginScreenContent> {
                     spacing: 12,
                     children: [
                       TextButton(
-                        onPressed: () => setState(() => _modo = _modo == LoginMode.cadastro ? LoginMode.entrar : LoginMode.cadastro),
-                        style: TextButton.styleFrom(foregroundColor: Colors.grey[600]),
-                        child: Text(_modo == LoginMode.cadastro ? 'Já tenho conta' : 'Criar cadastro', style: const TextStyle(fontSize: 13)),
+                        onPressed: () => setState(
+                          () => _modo = _modo == LoginMode.cadastro
+                              ? LoginMode.entrar
+                              : LoginMode.cadastro,
+                        ),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.grey[600],
+                        ),
+                        child: Text(
+                          _modo == LoginMode.cadastro
+                              ? 'Já tenho conta'
+                              : 'Criar cadastro',
+                          style: const TextStyle(fontSize: 13),
+                        ),
                       ),
                       TextButton(
-                        onPressed: () => setState(() => _modo = LoginMode.recuperar),
-                        style: TextButton.styleFrom(foregroundColor: Colors.grey[600]),
-                        child: const Text('Recuperar conta', style: TextStyle(fontSize: 13)),
+                        onPressed: () =>
+                            setState(() => _modo = LoginMode.recuperar),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.grey[600],
+                        ),
+                        child: const Text(
+                          'Recuperar conta',
+                          style: TextStyle(fontSize: 13),
+                        ),
                       ),
                     ],
                   ),
