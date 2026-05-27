@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/network/api_service.dart';
+import '../../../core/widgets/copa_banner_header.dart';
 import '../data/jogador_repository.dart';
 import '../domain/jogador_model.dart';
 
@@ -154,11 +155,12 @@ class _JogadoresScreenState extends State<JogadoresScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.canEdit ? 'Gerir Jogadores' : 'Jogadores'),
+      appBar: CopaBannerHeader(
+        title: widget.canEdit ? 'Gerir Jogadores' : 'Jogadores',
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
+            color: const Color(0xFF0B1F4D),
             onPressed: _buscarJogadores,
           ),
         ],

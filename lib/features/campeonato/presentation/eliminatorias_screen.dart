@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/widgets/copa_banner_header.dart';
 
 class EliminatoriasScreen extends StatelessWidget {
   const EliminatoriasScreen({super.key});
@@ -57,7 +58,7 @@ class EliminatoriasScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Eliminatorias 2026')),
+      appBar: const CopaBannerHeader(title: 'Eliminatórias 2026'),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

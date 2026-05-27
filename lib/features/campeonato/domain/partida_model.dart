@@ -19,10 +19,21 @@ class PartidaModel {
     return PartidaModel(
       id: int.tryParse(json['idPartida']?.toString() ?? '0') ?? 0,
       data: json['dataPartida'] ?? '',
-      placarCasa: int.tryParse(json['placarEquipeCasa']?.toString() ?? '0') ?? 0,
-      placarVisitante: int.tryParse(json['placarEquipeVisitante']?.toString() ?? '0') ?? 0,
+      placarCasa:
+          int.tryParse(
+            (json['placarCasa'] ?? json['placarEquipeCasa'])?.toString() ?? '0',
+          ) ??
+          0,
+      placarVisitante:
+          int.tryParse(
+            (json['placarVisitante'] ?? json['placarEquipeVisitante'])
+                    ?.toString() ??
+                '0',
+          ) ??
+          0,
       idEquipeCasa: int.tryParse(json['idEquipeCasa']?.toString() ?? '0') ?? 0,
-      idEquipeVisitante: int.tryParse(json['idEquipeVisitante']?.toString() ?? '0') ?? 0,
+      idEquipeVisitante:
+          int.tryParse(json['idEquipeVisitante']?.toString() ?? '0') ?? 0,
     );
   }
 

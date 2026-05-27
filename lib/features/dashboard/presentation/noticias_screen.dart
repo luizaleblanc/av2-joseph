@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/widgets/copa_banner_header.dart';
 
 class NoticiasScreen extends StatefulWidget {
   final bool canEdit;
@@ -12,9 +13,9 @@ class NoticiasScreen extends StatefulWidget {
 class _NoticiasScreenState extends State<NoticiasScreen> {
   final List<Map<String, String>> _noticias = [
     {
-      'titulo': 'Copa do Mundo 2026 tera 48 selecoes',
+      'titulo': 'Copa do Mundo 2026 terá 48 selecoes',
       'resumo':
-          'A competicao passa a ser organizada em 12 grupos, com classificacao ampliada para o mata-mata.',
+          'A competição passa a ser organizada em 12 grupos, com classificação ampliada para o mata-mata.',
       'data': '2026',
     },
     {
@@ -83,7 +84,7 @@ class _NoticiasScreenState extends State<NoticiasScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Noticias')),
+      appBar: const CopaBannerHeader(title: 'Notícias'),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: _noticias.length,

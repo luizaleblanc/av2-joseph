@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../../core/network/api_service.dart';
+import '../../../core/widgets/copa_banner_header.dart';
 import '../data/equipe_repository.dart';
 import '../domain/equipe_model.dart';
 
@@ -14,9 +16,60 @@ class EquipesScreen extends StatefulWidget {
 
 class _EquipesScreenState extends State<EquipesScreen> {
   late final EquipeRepository _repository;
-  
+
   List<EquipeModel> _equipes = [];
   bool _carregando = true;
+
+  static const List<_PaisCopa> _paisesCopa = [
+    _PaisCopa('México', 'mx'),
+    _PaisCopa('África do Sul', 'za'),
+    _PaisCopa('Coreia do Sul', 'kr'),
+    _PaisCopa('República Tcheca', 'cz'),
+    _PaisCopa('Canadá', 'ca'),
+    _PaisCopa('Bósnia e Herzegovina', 'ba'),
+    _PaisCopa('Catar', 'qa'),
+    _PaisCopa('Suíça', 'ch'),
+    _PaisCopa('Brasil', 'br'),
+    _PaisCopa('Marrocos', 'ma'),
+    _PaisCopa('Haiti', 'ht'),
+    _PaisCopa('Escócia', 'gb-sct'),
+    _PaisCopa('Estados Unidos', 'us'),
+    _PaisCopa('Paraguai', 'py'),
+    _PaisCopa('Austrália', 'au'),
+    _PaisCopa('Turquia', 'tr'),
+    _PaisCopa('Alemanha', 'de'),
+    _PaisCopa('Curaçao', 'cw'),
+    _PaisCopa('Costa do Marfim', 'ci'),
+    _PaisCopa('Equador', 'ec'),
+    _PaisCopa('Holanda', 'nl'),
+    _PaisCopa('Japão', 'jp'),
+    _PaisCopa('Suécia', 'se'),
+    _PaisCopa('Tunísia', 'tn'),
+    _PaisCopa('Bélgica', 'be'),
+    _PaisCopa('Egito', 'eg'),
+    _PaisCopa('Irã', 'ir'),
+    _PaisCopa('Nova Zelândia', 'nz'),
+    _PaisCopa('Espanha', 'es'),
+    _PaisCopa('Cabo Verde', 'cv'),
+    _PaisCopa('Arábia Saudita', 'sa'),
+    _PaisCopa('Uruguai', 'uy'),
+    _PaisCopa('França', 'fr'),
+    _PaisCopa('Senegal', 'sn'),
+    _PaisCopa('Iraque', 'iq'),
+    _PaisCopa('Noruega', 'no'),
+    _PaisCopa('Argentina', 'ar'),
+    _PaisCopa('Argélia', 'dz'),
+    _PaisCopa('Áustria', 'at'),
+    _PaisCopa('Jordânia', 'jo'),
+    _PaisCopa('Portugal', 'pt'),
+    _PaisCopa('RD Congo', 'cd'),
+    _PaisCopa('Uzbequistão', 'uz'),
+    _PaisCopa('Colômbia', 'co'),
+    _PaisCopa('Inglaterra', 'gb-eng'),
+    _PaisCopa('Croácia', 'hr'),
+    _PaisCopa('Gana', 'gh'),
+    _PaisCopa('Panamá', 'pa'),
+  ];
 
   @override
   void initState() {
@@ -29,7 +82,7 @@ class _EquipesScreenState extends State<EquipesScreen> {
     setState(() => _carregando = true);
 
     final equipes = await _repository.obterEquipes();
-    
+
     if (!mounted) return;
     setState(() {
       _equipes = equipes;
@@ -39,54 +92,91 @@ class _EquipesScreenState extends State<EquipesScreen> {
 
   Future<void> _abrirFormulario({EquipeModel? equipe}) async {
     final editando = equipe != null;
-    final nomeController = TextEditingController(text: equipe?.nome ?? '');
-    final cidadeController = TextEditingController(text: equipe?.cidade ?? '');
+    String paisSelecionado = _paisesCopa
+        .firstWhere(
+          (pais) => pais.nome == equipe?.nome,
+          orElse: () => _paisesCopa.first,
+        )
+        .nome;
 
     await showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text(editando ? 'Editar Equipa' : 'Cadastrar Nova Equipa'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nomeController,
-                decoration: const InputDecoration(labelText: 'Nome da Equipa'),
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return AlertDialog(
+              title: Text(editando ? 'Editar Equipe' : 'Cadastrar Nova Equipe'),
+              content: DropdownButtonFormField<String>(
+                initialValue: paisSelecionado,
+                decoration: const InputDecoration(
+                  labelText: 'País',
+                  border: OutlineInputBorder(),
+                ),
+                items: _paisesCopa
+                    .map(
+                      (pais) => DropdownMenuItem<String>(
+                        value: pais.nome,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _FlagImage(pais: pais, width: 28, height: 20),
+                            const SizedBox(width: 10),
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 220),
+                              child: Text(
+                                pais.nome,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (valor) {
+                  if (valor != null) {
+                    setModalState(() => paisSelecionado = valor);
+                  }
+                },
               ),
-              TextField(
-                controller: cidadeController,
-                decoration: const InputDecoration(labelText: 'Cidade'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final nome = nomeController.text.trim();
-                final cidade = cidadeController.text.trim();
-                if (nome.isEmpty || cidade.isEmpty) return;
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancelar'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final sucesso = editando
+                        ? await _repository.atualizarEquipe(
+                            equipe.id,
+                            paisSelecionado,
+                            paisSelecionado,
+                          )
+                        : await _repository.salvarEquipe(
+                            paisSelecionado,
+                            paisSelecionado,
+                          );
 
-                final sucesso = editando
-                    ? await _repository.atualizarEquipe(equipe.id, nome, cidade)
-                    : await _repository.salvarEquipe(nome, cidade);
+                    if (!context.mounted) return;
+                    Navigator.pop(context);
 
-                if (!context.mounted) return;
-                Navigator.pop(context);
-                
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(sucesso ? 'Guardado com sucesso!' : 'Erro ao guardar.')),
-                );
-                
-                if (sucesso) _buscarEquipes();
-              },
-              child: const Text('Guardar'),
-            ),
-          ],
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          sucesso
+                              ? 'Equipe salva com sucesso!'
+                              : 'Erro ao salvar.',
+                        ),
+                      ),
+                    );
+
+                    if (sucesso) _buscarEquipes();
+                  },
+                  child: const Text('Salvar'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -96,8 +186,8 @@ class _EquipesScreenState extends State<EquipesScreen> {
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Excluir Equipa'),
-        content: Text('Deseja excluir a equipa ${equipe.nome}?'),
+        title: const Text('Excluir Equipe'),
+        content: Text('Deseja excluir a equipe ${equipe.nome}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -117,7 +207,9 @@ class _EquipesScreenState extends State<EquipesScreen> {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(sucesso ? 'Equipa excluída!' : 'Erro ao excluir.')),
+      SnackBar(
+        content: Text(sucesso ? 'Equipe excluída!' : 'Erro ao excluir.'),
+      ),
     );
     if (sucesso) _buscarEquipes();
   }
@@ -125,13 +217,12 @@ class _EquipesScreenState extends State<EquipesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.canEdit ? 'Gerir Seleções' : 'Seleções'),
-        backgroundColor: const Color(0xFF0B1F4D),
-        foregroundColor: Colors.white,
+      appBar: CopaBannerHeader(
+        title: widget.canEdit ? 'Gerenciar Seleções' : 'Seleções',
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
+            color: const Color(0xFF0B1F4D),
             onPressed: _buscarEquipes,
           ),
         ],
@@ -139,42 +230,100 @@ class _EquipesScreenState extends State<EquipesScreen> {
       body: _carregando
           ? const Center(child: CircularProgressIndicator())
           : _equipes.isEmpty
-              ? const Center(child: Text('Nenhuma equipa registada ainda.'))
-              : ListView.builder(
-                  itemCount: _equipes.length,
-                  itemBuilder: (context, index) {
-                    final equipe = _equipes[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: ListTile(
-                        leading: const Icon(Icons.shield, color: Colors.green, size: 40),
-                        title: Text(equipe.nome),
-                        subtitle: Text('Cidade: ${equipe.cidade} | ID: ${equipe.id}'),
-                        trailing: widget.canEdit
-                            ? Wrap(
-                                spacing: 4,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.edit),
-                                    onPressed: () => _abrirFormulario(equipe: equipe),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete),
-                                    onPressed: () => _confirmarExclusao(equipe),
-                                  ),
-                                ],
-                              )
-                            : null,
-                      ),
-                    );
-                  },
-                ),
+          ? const Center(child: Text('Nenhuma equipe registrada ainda.'))
+          : ListView.builder(
+              itemCount: _equipes.length,
+              itemBuilder: (context, index) {
+                final equipe = _equipes[index];
+                final pais = _paisPorNome(equipe.nome);
+
+                return Card(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: ListTile(
+                    leading: _FlagImage(pais: pais, width: 46, height: 32),
+                    title: Text(equipe.nome),
+                    subtitle: Text('País: ${equipe.cidade} | ID: ${equipe.id}'),
+                    trailing: widget.canEdit
+                        ? Wrap(
+                            spacing: 4,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit),
+                                onPressed: () =>
+                                    _abrirFormulario(equipe: equipe),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () => _confirmarExclusao(equipe),
+                              ),
+                            ],
+                          )
+                        : null,
+                  ),
+                );
+              },
+            ),
       floatingActionButton: widget.canEdit
           ? FloatingActionButton(
               onPressed: () => _abrirFormulario(),
               child: const Icon(Icons.add),
             )
           : null,
+    );
+  }
+
+  _PaisCopa _paisPorNome(String nome) {
+    return _paisesCopa.firstWhere(
+      (pais) => pais.nome.toLowerCase() == nome.toLowerCase(),
+      orElse: () => _PaisCopa(nome, ''),
+    );
+  }
+}
+
+class _PaisCopa {
+  final String nome;
+  final String codigo;
+
+  const _PaisCopa(this.nome, this.codigo);
+}
+
+class _FlagImage extends StatelessWidget {
+  final _PaisCopa pais;
+  final double width;
+  final double height;
+
+  const _FlagImage({
+    required this.pais,
+    required this.width,
+    required this.height,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (pais.codigo.isEmpty) {
+      return SizedBox(
+        width: width,
+        height: height,
+        child: const Icon(Icons.flag, color: Color(0xFF64748B)),
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(4),
+      child: Image.network(
+        'https://flagcdn.com/w80/${pais.codigo}.png',
+        width: width,
+        height: height,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => SizedBox(
+          width: width,
+          height: height,
+          child: const Icon(Icons.flag, color: Color(0xFF64748B)),
+        ),
+      ),
     );
   }
 }

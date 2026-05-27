@@ -230,12 +230,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             statusText: '',
                             isLive: false,
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 32),
                           const Text(
                             'Visão Geral',
                             style: TextStyle(
                               fontSize: 20,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w800,
                               color: Color(0xFF0F172A),
                             ),
                           ),
@@ -248,8 +248,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             shrinkWrap: true,
                             childAspectRatio:
                                 MediaQuery.of(context).size.width > 800
-                                ? 2.75
-                                : 2.15,
+                                ? 3.4
+                                : 2.45,
                             physics: const NeverScrollableScrollPhysics(),
                             children: [
                               _buildEstatisticaCard(
@@ -465,7 +465,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         border: Border.all(color: const Color(0xFFF1F5F9)),
         boxShadow: [
           BoxShadow(
-            color: cor.withValues(alpha: 0.04),
+            color: cor.withValues(alpha: 0.035),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -476,21 +476,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Positioned(
             right: -8,
             bottom: -10,
-            child: Icon(icone, size: 52, color: cor.withValues(alpha: 0.045)),
+            child: Icon(icone, size: 48, color: cor.withValues(alpha: 0.045)),
           ),
           Padding(
-            padding: const EdgeInsets.all(10.0),
+            padding: const EdgeInsets.all(8.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(5),
+                  padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
                     color: cor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(7),
+                    borderRadius: BorderRadius.circular(6),
                   ),
-                  child: Icon(icone, color: cor, size: 17),
+                  child: Icon(icone, color: cor, size: 16),
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -498,7 +498,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Text(
                       valor,
                       style: const TextStyle(
-                        fontSize: 21,
+                        fontSize: 19,
                         fontWeight: FontWeight.w900,
                         color: Color(0xFF0F172A),
                       ),
@@ -506,7 +506,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Text(
                       titulo,
                       style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: 11,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF64748B),
                       ),
@@ -523,44 +523,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildDrawer(BuildContext context) {
     return Drawer(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.black,
       child: Column(
         children: [
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.only(
-              top: 60,
-              bottom: 24,
-              left: 24,
-              right: 24,
-            ),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF0B1F4D), Color(0xFF0B5FFF)],
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Colors.white,
-                  child: Icon(Icons.public, size: 36, color: Color(0xFF0B5FFF)),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Menu Principal',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  _isAdmin ? 'Perfil Administrador' : 'Perfil Espectador',
-                  style: const TextStyle(color: Colors.white70),
-                ),
-              ],
+            height: 170,
+            decoration: const BoxDecoration(color: Colors.black),
+            child: Image.asset(
+              'assets/copa_menu.jpeg',
+              fit: BoxFit.cover,
+              alignment: Alignment.center,
             ),
           ),
           Expanded(
@@ -639,7 +612,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
           ),
-          const Divider(height: 1),
+          const Divider(height: 1, color: Color(0xFF1F2937)),
           _buildDrawerItem(context, Icons.logout, 'Sair', () {
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -659,21 +632,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
     VoidCallback onTap, {
     bool isDestructive = false,
   }) {
+    final foregroundColor = isDestructive
+        ? const Color(0xFFEF4444)
+        : Colors.white;
+    final stateColor = isDestructive ? const Color(0xFFEF4444) : Colors.white;
+
     return ListTile(
-      leading: Icon(
-        icon,
-        color: isDestructive
-            ? const Color(0xFFE61E4D)
-            : const Color(0xFF0B1F4D),
-      ),
+      iconColor: foregroundColor,
+      textColor: foregroundColor,
+      hoverColor: Colors.transparent,
+      focusColor: Colors.transparent,
+      selectedTileColor: stateColor.withValues(alpha: 0.14),
+      splashColor: stateColor.withValues(alpha: 0.18),
+      leading: Icon(icon, color: foregroundColor),
       title: Text(
         title,
-        style: TextStyle(
-          fontWeight: FontWeight.w600,
-          color: isDestructive
-              ? const Color(0xFFE61E4D)
-              : const Color(0xFF0B1F4D),
-        ),
+        style: TextStyle(fontWeight: FontWeight.w600, color: foregroundColor),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 24),
       onTap: () {

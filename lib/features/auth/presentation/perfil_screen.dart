@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/widgets/copa_banner_header.dart';
 import '../domain/perfil_usuario.dart';
 
 class PerfilScreen extends StatefulWidget {
@@ -36,12 +37,9 @@ class _PerfilScreenState extends State<PerfilScreen> {
           ];
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_isAdmin ? 'Perfil ADM' : 'Perfil'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context, _perfilAtual),
-        ),
+      appBar: CopaBannerHeader(
+        title: _isAdmin ? 'Perfil ADM' : 'Perfil',
+        onBack: () => Navigator.pop(context, _perfilAtual),
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),

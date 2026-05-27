@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/network/api_service.dart';
+import '../../../core/widgets/copa_banner_header.dart';
 import '../../equipes/data/equipe_repository.dart';
 import '../../equipes/domain/equipe_model.dart';
 import '../data/partida_repository.dart';
@@ -334,12 +335,14 @@ class _PartidasScreenState extends State<PartidasScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7FB),
-      appBar: AppBar(
-        title: Text(widget.canEdit ? 'Gestão de Partidas' : 'Tabela de Jogos'),
-        backgroundColor: const Color(0xFF0B1F4D),
-        elevation: 0,
+      appBar: CopaBannerHeader(
+        title: widget.canEdit ? 'Gestão de Partidas' : 'Tabela de Jogos',
         actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _buscarDados),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            color: const Color(0xFF0B1F4D),
+            onPressed: _buscarDados,
+          ),
         ],
       ),
       body: _carregando

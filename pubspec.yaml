@@ -60,6 +60,7 @@ flutter:
   assets:
     - assets/copa2026_poster.jpg
     - assets/copa_banner.png
+    - assets/copa_menu.jpeg
 
   # To add assets to your application, add an assets section, like this:
   # assets:
