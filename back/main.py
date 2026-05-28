@@ -2,20 +2,24 @@ import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS 
 import pymysql
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app) 
 
 def conectaBanco():
     return pymysql.connect(
-        database='copado_mundo',
-        host='localhost',
-        user='root',
-        passwd=os.getenv('MYSQL_PASSWORD', 'annyacernitrov15'),
+        database=os.getenv('DB_NAME', 'copado_mundo'),
+        host=os.getenv('DB_HOST', 'localhost'),
+        user=os.getenv('DB_USER', 'root'),
+        passwd=os.getenv('DB_PASSWORD', os.getenv('MYSQL_PASSWORD', 'Mimo2007!')),
+        port=int(os.getenv('DB_PORT', 3306)),
         charset='utf8mb4'
     )
 
-##################### AUTENTICAÇÃO & PERFIL #############################
+##################### AUTENTICAÇÃO #############################
 
 # REGISTRO DE USUÁRIO
 @app.route('/cadastro', methods=['POST'])
@@ -24,15 +28,14 @@ def cadastro():
     nome = dados['nome']
     email = dados['email']
     senha = dados['senha']
-    tipo = dados.get('tipo_usuario') 
     pergunta = dados['pergunta_seguranca']
     resposta = dados['resposta_seguranca']
 
     bd = conectaBanco()
     cursor = bd.cursor()
     try:
-        sql = "INSERT INTO usuario (nome, email, senha, tipo_usuario, pergunta_seguranca, resposta_seguranca) VALUES (%s, %s, %s, %s, %s, %s);"
-        cursor.execute(sql, (nome, email, senha, tipo, pergunta, resposta))
+        sql = "INSERT INTO usuario (nome, email, senha, pergunta_seguranca, resposta_seguranca) VALUES (%s, %s, %s, %s, %s);"
+        cursor.execute(sql, (nome, email, senha, pergunta, resposta))
         bd.commit()
         mensagem = {"mensagem": "Usuário cadastrado com sucesso!", "code": 201}
     except pymysql.MySQLError:
@@ -50,7 +53,7 @@ def login():
 
     bd = conectaBanco()
     cursor = bd.cursor()
-    sql = "SELECT id_usuario, nome, email, tipo_usuario FROM usuario WHERE email = %s AND senha = %s;"
+    sql = "SELECT id_usuario, nome, email FROM usuario WHERE email = %s AND senha = %s;"
     cursor.execute(sql, (email, senha))
     usuario = cursor.fetchone()
     bd.close()
@@ -60,8 +63,7 @@ def login():
             "code": 200,
             "id_usuario": usuario[0],
             "nome": usuario[1],
-            "email": usuario[2],
-            "tipo_usuario": usuario[3] 
+            "email": usuario[2]
         })
     return jsonify({"mensagem": "Credenciais incorretas.", "code": 401})
 
@@ -83,6 +85,27 @@ def buscar_pergunta():
     return jsonify({"mensagem": "Email não encontrado.", "code": 404})
 
 # RECUPERAÇÃO DE CONTA - PASSO 2: Valida a resposta e altera a senha
+@app.route('/recuperar/validar', methods=['POST'])
+def validar_recuperacao():
+    dados = request.get_json()
+    email = dados['email']
+    pergunta = dados['pergunta_seguranca']
+    resposta = dados['resposta_seguranca']
+
+    bd = conectaBanco()
+    cursor = bd.cursor()
+    sql = """SELECT id_usuario FROM usuario
+             WHERE email = %s
+             AND pergunta_seguranca = %s
+             AND resposta_seguranca = %s;"""
+    cursor.execute(sql, (email, pergunta, resposta))
+    resultado = cursor.fetchone()
+    bd.close()
+
+    if resultado:
+        return jsonify({"mensagem": "Dados de recuperacao confirmados.", "code": 200})
+    return jsonify({"mensagem": "Email ou resposta de seguranca invalidos.", "code": 400})
+
 @app.route('/recuperar/senha', methods=['POST'])
 def alterar_senha_recuperacao():
     dados = request.get_json()
@@ -102,34 +125,14 @@ def alterar_senha_recuperacao():
         return jsonify({"mensagem": "Senha redefinida com sucesso!", "code": 200})
     return jsonify({"mensagem": "Resposta de segurança inválida.", "code": 400})
 
-# ATUALIZAÇÃO DE PERFIL
-@app.route('/perfil/atualizar', methods=['PUT'])
-def atualizar_perfil():
-    dados = request.get_json()
-    id_usuario = dados['id_usuario']
-    nome = dados['nome']
-    senha = dados['senha']
+##################### SELEÇÕES (EQUIPES) #############################
 
-    bd = conectaBanco()
-    cursor = bd.cursor()
-    sql = "UPDATE usuario SET nome = %s, senha = %s WHERE id_usuario = %s;"
-    cursor.execute(sql, (nome, senha, id_usuario))
-    bd.commit()
-    resultado = cursor.rowcount
-    bd.close()
-
-    if resultado > 0:
-        return jsonify({"mensagem": "Dados do perfil atualizados!", "code": 200})
-    return jsonify({"mensagem": "Nenhuma alteração foi realizada.", "code": 400})
-
-
-##################### SELEÇÕES #############################
-
+@app.route('/listaequipes', methods=['GET'])
 @app.route('/listaselecoes', methods=['GET'])
 def consultaSelecoes():
     bd = conectaBanco()
     cursor = bd.cursor()
-    sql = "SELECT id_selecao, nome, grupo FROM selecao;"
+    sql = "SELECT id_selecao, nome, grupo FROM selecao WHERE acompanhar = 1;"
     cursor.execute(sql)
     resultado = cursor.fetchall()
     
@@ -138,21 +141,37 @@ def consultaSelecoes():
         selecoes.append({
             "idSelecao": sel[0],
             "nomeSelecao": sel[1],
-            "grupoSelecao": sel[2]
+            "grupoSelecao": sel[2],
+            "idTime": sel[0],
+            "nome": sel[1],
+            "cidade": sel[2]  # Flutter mapeia cidade para o grupo do banco
         })
     bd.close()
     return jsonify(selecoes)
 
+@app.route("/cadastraequipe", methods=["POST"])
 @app.route("/cadastraselecao", methods=["POST"])
 def createSelecao():
-    dados = request.get_json()
-    nome = dados['nomeSelecao']
-    grupo = dados['grupoSelecao']
+    dados = request.get_json() or {}
+    nome = dados.get('nomeEquipe') or dados.get('nomeSelecao')
+    grupo = dados.get('cidadeEquipe') or dados.get('grupoSelecao')
 
     bd = conectaBanco()
     cursor = bd.cursor()
-    sql = "INSERT INTO selecao (nome, grupo) VALUES (%s, %s);"
-    cursor.execute(sql, (nome, grupo))
+    
+    # Verifica se a seleção já existe no banco (pré-cadastrada ou não)
+    cursor.execute("SELECT id_selecao FROM selecao WHERE nome = %s;", (nome,))
+    existe = cursor.fetchone()
+    
+    if existe:
+        # Se existe, apenas marcamos para acompanhar
+        sql = "UPDATE selecao SET acompanhar = 1, grupo = %s WHERE id_selecao = %s;"
+        cursor.execute(sql, (grupo, existe[0]))
+    else:
+        # Se não existe por algum motivo, inserimos como acompanhada
+        sql = "INSERT INTO selecao (nome, grupo, acompanhar) VALUES (%s, %s, 1);"
+        cursor.execute(sql, (nome, grupo))
+        
     bd.commit()
     resultado = cursor.rowcount
     bd.close()
@@ -161,33 +180,57 @@ def createSelecao():
         return jsonify({"mensagem": "Seleção cadastrada com sucesso!", "code": 200})
     return jsonify({"mensagem": "Erro ao cadastrar seleção.", "code": 400})
 
+@app.route("/atualizaequipe", methods=['PUT'])
 @app.route("/atualizaselecao", methods=['PUT'])
 def updateSelecao():
-    dados = request.get_json()
-    id_selecao = dados['idSelecao'] 
-    nome = dados['nomeSelecao']
-    grupo = dados['grupoSelecao']
+    dados = request.get_json() or {}
+    id_selecao = dados.get('idEquipe') or dados.get('idSelecao')
+    nome = dados.get('nomeEquipe') or dados.get('nomeSelecao')
+    grupo = dados.get('cidadeEquipe') or dados.get('grupoSelecao')
 
     bd = conectaBanco()
     cursor = bd.cursor()
-    sql = "UPDATE selecao SET nome = %s, grupo = %s WHERE id_selecao = %s;"
-    cursor.execute(sql, (nome, grupo, id_selecao))
+    
+    # Descobre o nome da seleção que estava sendo editada anteriormente
+    cursor.execute("SELECT nome FROM selecao WHERE id_selecao = %s;", (id_selecao,))
+    old_team = cursor.fetchone()
+    
+    resultado = 0
+    if old_team and old_team[0] != nome:
+        # O usuário está alterando o país selecionado!
+        # 1. Deixa de acompanhar o antigo
+        cursor.execute("UPDATE selecao SET acompanhar = 0 WHERE id_selecao = %s;", (id_selecao,))
+        # 2. Passa a acompanhar o novo (verifica se o novo já existe)
+        cursor.execute("SELECT id_selecao FROM selecao WHERE nome = %s;", (nome,))
+        novo_existe = cursor.fetchone()
+        if novo_existe:
+            cursor.execute("UPDATE selecao SET acompanhar = 1, grupo = %s WHERE id_selecao = %s;", (grupo, novo_existe[0]))
+        else:
+            cursor.execute("INSERT INTO selecao (nome, grupo, acompanhar) VALUES (%s, %s, 1);", (nome, grupo))
+        resultado = 1
+    else:
+        # O nome é o mesmo, apenas atualiza grupo se necessário
+        cursor.execute("UPDATE selecao SET grupo = %s WHERE id_selecao = %s;", (grupo, id_selecao))
+        resultado = cursor.rowcount
+        
     bd.commit()
-    resultado = cursor.rowcount
     bd.close()
     
     if resultado > 0:
         return jsonify({"mensagem": "Seleção atualizada com sucesso!", "code": 200})
     return jsonify({"mensagem": "Seleção não localizada ou sem alterações.", "code": 400})
 
+@app.route('/removeequipe', methods=['DELETE'])
 @app.route('/removeselecao', methods=['DELETE'])
 def deleteSelecao():
-    dados = request.get_json()
-    id_selecao = dados['idSelecao']
+    dados = request.get_json() or {}
+    id_selecao = dados.get('idEquipe') or dados.get('idSelecao')
 
     bd = conectaBanco()
     cursor = bd.cursor()
-    sql = "DELETE FROM selecao WHERE id_selecao = %s;"
+    # Em vez de deletar de fato do banco (o que violaria chaves estrangeiras de jogadores e partidas),
+    # nós apenas deixamos de acompanhar aquela seleção.
+    sql = "UPDATE selecao SET acompanhar = 0 WHERE id_selecao = %s;"
     cursor.execute(sql, (id_selecao,))
     bd.commit()
     resultado = cursor.rowcount
@@ -198,14 +241,31 @@ def deleteSelecao():
     return jsonify({"mensagem": "Seleção não localizada.", "code": 400})
 
 
+
 ##################### JOGADORES #############################
 
 @app.route('/listajogadores', methods=['GET'])
 def consultaJogadores():
+    id_selecao = request.args.get('idSelecao')
+    
     bd = conectaBanco()
     cursor = bd.cursor()
-    sql = "SELECT id_jogador, nome, posicao, id_selecao_fk FROM jogador;"
-    cursor.execute(sql)
+    
+    if id_selecao:
+        # Retorna todos os jogadores daquela seleção para poder selecionar no dropdown da UI
+        sql = """SELECT j.id_jogador, j.nome, j.posicao, j.id_selecao_fk, s.nome 
+                 FROM jogador j
+                 JOIN selecao s ON j.id_selecao_fk = s.id_selecao
+                 WHERE j.id_selecao_fk = %s;"""
+        cursor.execute(sql, (id_selecao,))
+    else:
+        # Retorna apenas os jogadores marcados para acompanhar
+        sql = """SELECT j.id_jogador, j.nome, j.posicao, j.id_selecao_fk, s.nome 
+                 FROM jogador j
+                 JOIN selecao s ON j.id_selecao_fk = s.id_selecao
+                 WHERE j.acompanhar = 1;"""
+        cursor.execute(sql)
+        
     resultado = cursor.fetchall()
     
     jogadores = []
@@ -214,41 +274,57 @@ def consultaJogadores():
             "idJogador": jog[0],
             "nomeJogador": jog[1],
             "posicaoJogador": jog[2],
-            "idSelecaoFk": jog[3]
+            "idSelecaoFk": jog[3],
+            "idTimeFk": jog[3],  # Flutter espera idTimeFk
+            "nomeSelecao": jog[4]  # Envia o nome do país/seleção para o Flutter
         })
     bd.close()
     return jsonify(jogadores)
 
 @app.route('/cadastrajogador', methods=['POST'])
 def createJogador():
-    dados = request.get_json()
-    nome = dados['nomeJogador']
-    posicao = dados['posicaoJogador']
-    idSelecao = dados['idSelecaoFk']
+    dados = request.get_json() or {}
+    nome = dados.get('nomeJogador')
+    posicao = dados.get('posicaoJogador')
+    idSelecao = dados.get('idTimeFk') or dados.get('idSelecaoFk')
 
     bd = conectaBanco()
     cursor = bd.cursor()
-    sql = "INSERT INTO jogador (nome, posicao, id_selecao_fk) VALUES (%s, %s, %s);"
-    cursor.execute(sql, (nome, posicao, idSelecao))
+    
+    # Verifica se o jogador já existe na seleção
+    cursor.execute("SELECT id_jogador FROM jogador WHERE nome = %s AND id_selecao_fk = %s;", (nome, idSelecao))
+    existe = cursor.fetchone()
+    
+    if existe:
+        # Apenas ativa o acompanhamento e atualiza a posição se enviada
+        sql = "UPDATE jogador SET acompanhar = 1, posicao = %s WHERE id_jogador = %s;"
+        cursor.execute(sql, (posicao, existe[0]))
+    else:
+        # Cria um novo jogador se não existir
+        sql = "INSERT INTO jogador (nome, posicao, id_selecao_fk, acompanhar) VALUES (%s, %s, %s, 1);"
+        cursor.execute(sql, (nome, posicao, idSelecao))
+        
     bd.commit()
     resultado = cursor.rowcount
     bd.close()
 
     if resultado > 0:
-        return jsonify({"mensagem": "Jogador cadastrado com sucesso!", "code": 200})
+        # Retorna 200 para compatibilidade com o front-end que espera 200 para sucesso
+        return jsonify({"mensagem": "Jogador cadastrado para acompanhar com sucesso!", "code": 200})
     return jsonify({"mensagem": "Erro ao cadastrar jogador.", "code": 400})
 
 @app.route("/atualizajogador", methods=['PUT'])
 def updateJogador():
-    dados = request.get_json()
-    id_jogador = dados['idJogador']
-    nome = dados['nomeJogador']
-    posicao = dados['posicaoJogador']
-    id_selecao_fk = dados['idSelecaoFk']
+    dados = request.get_json() or {}
+    id_jogador = dados.get('idJogador')
+    nome = dados.get('nomeJogador')
+    posicao = dados.get('posicaoJogador')
+    id_selecao_fk = dados.get('idTimeFk') or dados.get('idSelecaoFk')
 
     bd = conectaBanco()
     cursor = bd.cursor()
-    sql = "UPDATE jogador SET nome = %s, posicao = %s, id_selecao_fk = %s WHERE id_jogador = %s;"
+    
+    sql = "UPDATE jogador SET nome = %s, posicao = %s, id_selecao_fk = %s, acompanhar = 1 WHERE id_jogador = %s;"
     cursor.execute(sql, (nome, posicao, id_selecao_fk, id_jogador))
     bd.commit()
     resultado = cursor.rowcount
@@ -260,29 +336,32 @@ def updateJogador():
 
 @app.route('/removejogador', methods=['DELETE'])
 def deleteJogador():
-    dados = request.get_json()
-    id_jogador = dados['idJogador']
+    dados = request.get_json() or {}
+    id_jogador = dados.get('idJogador')
 
     bd = conectaBanco()
     cursor = bd.cursor()
-    sql = "DELETE FROM jogador WHERE id_jogador = %s;"
+    # Em vez de deletar fisicamente, apenas deixa de acompanhar
+    sql = "UPDATE jogador SET acompanhar = 0 WHERE id_jogador = %s;"
     cursor.execute(sql, (id_jogador,))
     bd.commit()
     resultado = cursor.rowcount
     bd.close()
 
     if resultado > 0:
-        return jsonify({"mensagem": "Jogador removido com sucesso!", "code": 200})
+        return jsonify({"mensagem": "Jogador removido do acompanhamento!", "code": 200})
     return jsonify({"mensagem": "Jogador não localizado.", "code": 400})
 
 
 ########### PARTIDAS ##################
 
+@app.route('/listapartidas', methods=['GET'])
 @app.route('/listapartidasdetalhada', methods=['GET'])
 def consultaPartidasDetalhada():
     bd = conectaBanco()
     cursor = bd.cursor()
-    sql = """SELECT p.id_partidas, p.data, s1.nome AS selecao_casa, s2.nome AS selecao_visitante, p.placar_casa, p.placar_visitante
+    sql = """SELECT p.id_partidas, p.data, s1.nome AS selecao_casa, s2.nome AS selecao_visitante, p.placar_casa, p.placar_visitante,
+                    p.id_selecao_casa_fk, p.id_selecao_visitante_fk
             FROM partidas p
             JOIN selecao s1 ON p.id_selecao_casa_fk = s1.id_selecao
             JOIN selecao s2 ON p.id_selecao_visitante_fk = s2.id_selecao;"""
@@ -297,7 +376,11 @@ def consultaPartidasDetalhada():
             "selecaoCasa": part[2], 
             "selecaoVisitante": part[3], 
             "placarCasa": part[4], 
-            "placarVisitante": part[5]
+            "placarVisitante": part[5],
+            "placarEquipeCasa": part[4],
+            "placarEquipeVisitante": part[5],
+            "idEquipeCasa": part[6],
+            "idEquipeVisitante": part[7]
         })
     bd.close()
     return jsonify(listaPartidas)
@@ -306,10 +389,10 @@ def consultaPartidasDetalhada():
 def createPartida():
     dados = request.get_json()
     data = dados['dataPartida']
-    placarCasa = dados['placarSelecaoCasa']
-    placarVisitante = dados['placarSelecaoVisitante']
-    idSelecaoCasa = dados['idSelecaoCasa']
-    idSelecaoVisitante = dados['idSelecaoVisitante']
+    placarCasa = dados.get('placarEquipeCasa') if dados.get('placarEquipeCasa') is not None else dados.get('placarSelecaoCasa')
+    placarVisitante = dados.get('placarEquipeVisitante') if dados.get('placarEquipeVisitante') is not None else dados.get('placarSelecaoVisitante')
+    idSelecaoCasa = dados.get('idEquipeCasa') or dados.get('idSelecaoCasa')
+    idSelecaoVisitante = dados.get('idEquipeVisitante') or dados.get('idSelecaoVisitante')
 
     bd = conectaBanco()
     cursor = bd.cursor()
@@ -328,10 +411,10 @@ def updatePartida():
     dados = request.get_json()
     id_partida = dados['idPartida']
     dataPartida = dados['dataPartida']
-    placarCasa = dados['placarSelecaoCasa']
-    placarVisitante = dados['placarSelecaoVisitante']
-    idSelecaoCasa = dados['idSelecaoCasa']
-    idSelecaoVisitante = dados['idSelecaoVisitante']
+    placarCasa = dados.get('placarEquipeCasa') if dados.get('placarEquipeCasa') is not None else dados.get('placarSelecaoCasa')
+    placarVisitante = dados.get('placarEquipeVisitante') if dados.get('placarEquipeVisitante') is not None else dados.get('placarSelecaoVisitante')
+    idSelecaoCasa = dados.get('idEquipeCasa') or dados.get('idSelecaoCasa')
+    idSelecaoVisitante = dados.get('idEquipeVisitante') or dados.get('idSelecaoVisitante')
 
     bd = conectaBanco()
     cursor = bd.cursor()

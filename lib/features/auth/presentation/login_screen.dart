@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../domain/perfil_usuario.dart';
+import '../../../core/network/api_service.dart';
+import '../../../core/widgets/copa_banner_header.dart';
+import '../../../core/widgets/theme_mode_button.dart';
 import '../../dashboard/presentation/dashboard_screen.dart';
 
 enum LoginMode { entrar, cadastro, recuperar }
@@ -21,39 +23,119 @@ class LoginScreenContent extends StatefulWidget {
 }
 
 class _LoginScreenContentState extends State<LoginScreenContent> {
+  static const _perguntaSeguranca =
+      'Pergunta de segurança: Qual era o nome da sua professora favorita do ensino fundamental?';
+
   final _emailController = TextEditingController();
   final _senhaController = TextEditingController();
   final _nomeController = TextEditingController();
+  final _respostaSegurancaController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final _apiService = ApiService();
 
   LoginMode _modo = LoginMode.entrar;
-  bool _admin = false;
+  bool _salvando = false;
+  String? _erroLogin;
+  String? _erroRecuperacao;
+
+  void _limparErroLogin() {
+    if (_erroLogin != null || _erroRecuperacao != null) {
+      setState(() {
+        _erroLogin = null;
+        _erroRecuperacao = null;
+      });
+    }
+  }
 
   @override
   void dispose() {
     _emailController.dispose();
     _senhaController.dispose();
     _nomeController.dispose();
+    _respostaSegurancaController.dispose();
     super.dispose();
   }
 
-  void _fazerLogin() {
+  Future<void> _fazerLogin() async {
     if (_formKey.currentState!.validate()) {
       if (_modo == LoginMode.recuperar) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Instruções de recuperação enviadas.')),
+        setState(() => _salvando = true);
+
+        final sucesso = await _apiService.validarRecuperacao(
+          email: _emailController.text.trim(),
+          perguntaSeguranca: _perguntaSeguranca,
+          respostaSeguranca: _respostaSegurancaController.text.trim(),
         );
-        setState(() => _modo = LoginMode.entrar);
+
+        if (!mounted) return;
+        setState(() => _salvando = false);
+
+        if (sucesso) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Instruções de recuperação enviadas.'),
+            ),
+          );
+          setState(() => _modo = LoginMode.entrar);
+        } else {
+          setState(
+            () => _erroRecuperacao =
+                'Email ou resposta de segurança incorretos.',
+          );
+          _formKey.currentState?.validate();
+        }
         return;
       }
 
-      final perfil = _admin
-          ? PerfilUsuario.administrador
-          : PerfilUsuario.telespectador;
+      if (_modo == LoginMode.cadastro) {
+        setState(() => _salvando = true);
+
+        final sucesso = await _apiService.cadastrarUsuario(
+          nome: _nomeController.text.trim(),
+          email: _emailController.text.trim(),
+          senha: _senhaController.text,
+          perguntaSeguranca: _perguntaSeguranca,
+          respostaSeguranca: _respostaSegurancaController.text.trim(),
+        );
+
+        if (!mounted) return;
+        setState(() => _salvando = false);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              sucesso
+                  ? 'Usuário cadastrado com sucesso!'
+                  : 'Erro ao cadastrar. Verifique os dados ou tente outro e-mail.',
+            ),
+          ),
+        );
+
+        if (!sucesso) return;
+      }
+
+      if (_modo == LoginMode.entrar) {
+        setState(() => _salvando = true);
+
+        final sucesso = await _apiService.loginUsuario(
+          email: _emailController.text.trim(),
+          senha: _senhaController.text,
+        );
+
+        if (!mounted) return;
+        setState(() => _salvando = false);
+
+        if (!sucesso) {
+          setState(() => _erroLogin = 'E-mail ou senha incorretos.');
+          _formKey.currentState?.validate();
+          return;
+        }
+      }
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => DashboardScreen(perfil: perfil),
+          builder: (context) => const DashboardScreen(),
         ),
       );
     }
@@ -72,26 +154,43 @@ class _LoginScreenContentState extends State<LoginScreenContent> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final linkColor = isDark ? const Color(0xFFD7E3FF) : Colors.grey[600];
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0B1F4D),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 430),
-            padding: const EdgeInsets.all(32.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.25),
-                  blurRadius: 30,
-                  offset: const Offset(0, 15),
-                ),
-              ],
+      backgroundColor: isDark
+          ? const Color(0xFF061B49)
+          : const Color(0xFF0B1F4D),
+      body: Stack(
+        children: [
+          Positioned(
+            top: MediaQuery.of(context).padding.top > 0
+                ? MediaQuery.of(context).padding.top + 8
+                : 16,
+            right: 16,
+            child: const HeaderCircleIconButton(
+              child: ThemeModeButton(),
             ),
-            child: Form(
+          ),
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 430),
+                padding: const EdgeInsets.all(32.0),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF142B5F) : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.25),
+                      blurRadius: 30,
+                      offset: const Offset(0, 15),
+                    ),
+                  ],
+                ),
+                child: Form(
               key: _formKey,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -127,13 +226,25 @@ class _LoginScreenContentState extends State<LoginScreenContent> {
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
+                    onChanged: (_) => _limparErroLogin(),
                     decoration: const InputDecoration(
                       labelText: 'E-mail',
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.email_outlined),
                     ),
-                    validator: (v) =>
-                        v == null || v.isEmpty ? 'Informe o seu e-mail' : null,
+                    validator: (v) {
+                      if (v == null || v.isEmpty) {
+                        return 'Informe o seu e-mail';
+                      }
+                      if (_modo == LoginMode.entrar && _erroLogin != null) {
+                        return ' ';
+                      }
+                      if (_modo == LoginMode.recuperar &&
+                          _erroRecuperacao != null) {
+                        return ' ';
+                      }
+                      return null;
+                    },
                   ),
                   if (_modo != LoginMode.recuperar) ...[
                     const SizedBox(height: 16),
@@ -145,41 +256,48 @@ class _LoginScreenContentState extends State<LoginScreenContent> {
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.lock_outline),
                       ),
-                      validator: (v) =>
-                          v == null || v.isEmpty ? 'Informe a sua senha' : null,
+                      onChanged: (_) => _limparErroLogin(),
+                      validator: (v) {
+                        if (v == null || v.isEmpty) {
+                          return 'Informe a sua senha';
+                        }
+                        if (_modo == LoginMode.entrar && _erroLogin != null) {
+                          return _erroLogin;
+                        }
+                        return null;
+                      },
                     ),
                   ],
-                  if (_modo == LoginMode.cadastro) ...[
+                  if (_modo == LoginMode.cadastro ||
+                      _modo == LoginMode.recuperar) ...[
                     const SizedBox(height: 16),
-                    SegmentedButton<bool>(
-                      segments: const [
-                        ButtonSegment(
-                          value: false,
-                          label: Text(
-                            'Telespectador',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                          icon: Icon(Icons.check, size: 16),
+                    TextFormField(
+                      controller: _respostaSegurancaController,
+                      decoration: const InputDecoration(
+                        label: Text(
+                          _perguntaSeguranca,
+                          maxLines: 2,
+                          style: TextStyle(fontSize: 12, height: 1.45),
                         ),
-                        ButtonSegment(
-                          value: true,
-                          label: Text('ADM', style: TextStyle(fontSize: 12)),
-                          icon: Icon(Icons.admin_panel_settings, size: 16),
-                        ),
-                      ],
-                      selected: {_admin},
-                      onSelectionChanged: (v) =>
-                          setState(() => _admin = v.first),
-                      style: SegmentedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.security_outlined),
                       ),
+                      onChanged: (_) => _limparErroLogin(),
+                      validator: (v) {
+                        if (v == null || v.isEmpty) {
+                          return 'Informe a resposta';
+                        }
+                        if (_modo == LoginMode.recuperar &&
+                            _erroRecuperacao != null) {
+                          return _erroRecuperacao;
+                        }
+                        return null;
+                      },
                     ),
                   ],
                   const SizedBox(height: 32),
                   ElevatedButton(
-                    onPressed: _fazerLogin,
+                    onPressed: _salvando ? null : _fazerLogin,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFE61E4D),
                       foregroundColor: Colors.white,
@@ -188,13 +306,22 @@ class _LoginScreenContentState extends State<LoginScreenContent> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: Text(
-                      _botaoPrincipal,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: _salvando
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(
+                            _botaoPrincipal,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                   const SizedBox(height: 16),
                   Wrap(
@@ -203,12 +330,16 @@ class _LoginScreenContentState extends State<LoginScreenContent> {
                     children: [
                       TextButton(
                         onPressed: () => setState(
-                          () => _modo = _modo == LoginMode.cadastro
-                              ? LoginMode.entrar
-                              : LoginMode.cadastro,
+                          () {
+                            _erroLogin = null;
+                            _erroRecuperacao = null;
+                            _modo = _modo == LoginMode.cadastro
+                                ? LoginMode.entrar
+                                : LoginMode.cadastro;
+                          },
                         ),
                         style: TextButton.styleFrom(
-                          foregroundColor: Colors.grey[600],
+                          foregroundColor: linkColor,
                         ),
                         child: Text(
                           _modo == LoginMode.cadastro
@@ -218,10 +349,13 @@ class _LoginScreenContentState extends State<LoginScreenContent> {
                         ),
                       ),
                       TextButton(
-                        onPressed: () =>
-                            setState(() => _modo = LoginMode.recuperar),
+                        onPressed: () => setState(() {
+                          _erroLogin = null;
+                          _erroRecuperacao = null;
+                          _modo = LoginMode.recuperar;
+                        }),
                         style: TextButton.styleFrom(
-                          foregroundColor: Colors.grey[600],
+                          foregroundColor: linkColor,
                         ),
                         child: const Text(
                           'Recuperar conta',
@@ -232,9 +366,11 @@ class _LoginScreenContentState extends State<LoginScreenContent> {
                   ),
                 ],
               ),
+                ),
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

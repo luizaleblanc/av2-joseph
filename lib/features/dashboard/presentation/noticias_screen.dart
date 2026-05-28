@@ -72,7 +72,7 @@ class _NoticiasScreenState extends State<NoticiasScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F7FB),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CopaBannerHeader(
         title: 'Notícias da Copa',
         leadingIcon: Icons.menu,
@@ -159,6 +159,8 @@ class _LeadText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -183,8 +185,8 @@ class _LeadText extends StatelessWidget {
         const SizedBox(height: 10),
         Text(
           notic.subtitulo,
-          style: const TextStyle(
-            color: Color(0xFF334155),
+          style: TextStyle(
+            color: isDark ? const Color(0xFFD7E3FF) : const Color(0xFF334155),
             fontSize: 15,
             fontWeight: FontWeight.w700,
             height: 1.3,
@@ -210,6 +212,8 @@ class _NewsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
@@ -234,8 +238,10 @@ class _NewsCard extends StatelessWidget {
           const SizedBox(height: 5),
           Text(
             '• ${noticia.subtitulo}',
-            style: const TextStyle(
-              color: Color(0xFF334155),
+            style: TextStyle(
+              color: isDark
+                  ? const Color(0xFFD7E3FF)
+                  : const Color(0xFF334155),
               fontSize: 12,
               fontWeight: FontWeight.w600,
               height: 1.15,

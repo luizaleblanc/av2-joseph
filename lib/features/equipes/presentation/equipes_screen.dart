@@ -91,6 +91,19 @@ class _EquipesScreenState extends State<EquipesScreen> {
   }
 
   Future<void> _abrirFormulario({EquipeModel? equipe}) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cancelColor = isDark ? Colors.white : Colors.black;
+    final dialogColor = isDark ? const Color(0xFF26272D) : Colors.white;
+    final fieldBorder = OutlineInputBorder(
+      borderSide: BorderSide(color: isDark ? Colors.white : Colors.black54),
+    );
+    final fieldDecoration = InputDecoration(
+      filled: isDark,
+      fillColor: isDark ? dialogColor : null,
+      border: fieldBorder,
+      enabledBorder: fieldBorder,
+      focusedBorder: fieldBorder,
+    );
     final editando = equipe != null;
     String paisSelecionado = _paisesCopa
         .firstWhere(
@@ -105,12 +118,13 @@ class _EquipesScreenState extends State<EquipesScreen> {
         return StatefulBuilder(
           builder: (context, setModalState) {
             return AlertDialog(
+              backgroundColor: dialogColor,
               title: Text(editando ? 'Editar Equipe' : 'Cadastrar Nova Equipe'),
               content: DropdownButtonFormField<String>(
                 initialValue: paisSelecionado,
-                decoration: const InputDecoration(
+                dropdownColor: isDark ? dialogColor : null,
+                decoration: fieldDecoration.copyWith(
                   labelText: 'País',
-                  border: OutlineInputBorder(),
                 ),
                 items: _paisesCopa
                     .map(
@@ -142,9 +156,14 @@ class _EquipesScreenState extends State<EquipesScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
+                  style: TextButton.styleFrom(foregroundColor: cancelColor),
                   child: const Text('Cancelar'),
                 ),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFE61E4D),
+                    foregroundColor: Colors.white,
+                  ),
                   onPressed: () async {
                     final sucesso = editando
                         ? await _repository.atualizarEquipe(
@@ -172,7 +191,10 @@ class _EquipesScreenState extends State<EquipesScreen> {
 
                     if (sucesso) _buscarEquipes();
                   },
-                  child: const Text('Salvar'),
+                  child: const Text(
+                    'Salvar',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ],
             );
@@ -191,11 +213,23 @@ class _EquipesScreenState extends State<EquipesScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white
+                  : Colors.black,
+            ),
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE61E4D),
+              foregroundColor: Colors.white,
+            ),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Excluir'),
+            child: const Text(
+              'Excluir',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),

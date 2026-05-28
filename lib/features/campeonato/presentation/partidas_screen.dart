@@ -58,6 +58,17 @@ class _PartidasScreenState extends State<PartidasScreen> {
   }
 
   Future<void> _abrirFormulario({PartidaModel? partida}) async {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final dialogColor = isDark ? const Color(0xFF26272D) : Colors.white;
+    final fieldBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: isDark ? Colors.white : Colors.transparent),
+    );
+    final fieldFillColor = isDark
+        ? dialogColor
+        : Colors.grey.shade100;
+
     if (_equipes.length < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -82,6 +93,7 @@ class _PartidasScreenState extends State<PartidasScreen> {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: dialogColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -104,7 +116,6 @@ class _PartidasScreenState extends State<PartidasScreen> {
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0B1F4D),
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -114,11 +125,10 @@ class _PartidasScreenState extends State<PartidasScreen> {
                     decoration: InputDecoration(
                       labelText: 'Data (AAAA-MM-DD)',
                       filled: true,
-                      fillColor: Colors.grey.shade100,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
+                      fillColor: fieldFillColor,
+                      border: fieldBorder,
+                      enabledBorder: fieldBorder,
+                      focusedBorder: fieldBorder,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -126,17 +136,17 @@ class _PartidasScreenState extends State<PartidasScreen> {
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<int>(
+                          dropdownColor: isDark ? dialogColor : null,
                           initialValue: _equipes.any((e) => e.id == idCasa)
                               ? idCasa
                               : null,
                           decoration: InputDecoration(
                             labelText: 'Casa',
                             filled: true,
-                            fillColor: Colors.grey.shade100,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
+                            fillColor: fieldFillColor,
+                            border: fieldBorder,
+                            enabledBorder: fieldBorder,
+                            focusedBorder: fieldBorder,
                           ),
                           items: _equipes
                               .map(
@@ -161,17 +171,17 @@ class _PartidasScreenState extends State<PartidasScreen> {
                       ),
                       Expanded(
                         child: DropdownButtonFormField<int>(
+                          dropdownColor: isDark ? dialogColor : null,
                           initialValue: _equipes.any((e) => e.id == idVisitante)
                               ? idVisitante
                               : null,
                           decoration: InputDecoration(
                             labelText: 'Visitante',
                             filled: true,
-                            fillColor: Colors.grey.shade100,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
+                            fillColor: fieldFillColor,
+                            border: fieldBorder,
+                            enabledBorder: fieldBorder,
+                            focusedBorder: fieldBorder,
                           ),
                           items: _equipes
                               .map(
@@ -202,11 +212,10 @@ class _PartidasScreenState extends State<PartidasScreen> {
                           decoration: InputDecoration(
                             labelText: 'Gols Casa',
                             filled: true,
-                            fillColor: Colors.grey.shade100,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
+                            fillColor: fieldFillColor,
+                            border: fieldBorder,
+                            enabledBorder: fieldBorder,
+                            focusedBorder: fieldBorder,
                           ),
                         ),
                       ),
@@ -223,11 +232,10 @@ class _PartidasScreenState extends State<PartidasScreen> {
                           decoration: InputDecoration(
                             labelText: 'Gols Fora',
                             filled: true,
-                            fillColor: Colors.grey.shade100,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
+                            fillColor: fieldFillColor,
+                            border: fieldBorder,
+                            enabledBorder: fieldBorder,
+                            focusedBorder: fieldBorder,
                           ),
                         ),
                       ),
@@ -237,6 +245,7 @@ class _PartidasScreenState extends State<PartidasScreen> {
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFE61E4D),
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -314,10 +323,18 @@ class _PartidasScreenState extends State<PartidasScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white
+                  : Colors.black,
+            ),
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE61E4D),
+              foregroundColor: Colors.white,
+            ),
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Remover', style: TextStyle(color: Colors.white)),
           ),
@@ -333,8 +350,19 @@ class _PartidasScreenState extends State<PartidasScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final stripColor = isDark
+        ? const Color(0xFF24324A)
+        : const Color(0xFFE5E9F2);
+    final primaryTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
+    final secondaryTextColor = isDark
+        ? const Color(0xFFD7E3FF)
+        : const Color(0xFF0B1F4D);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F7FB),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: CopaBannerHeader(
         title: widget.canEdit ? 'Gestão de Partidas' : 'Tabela de Jogos',
         actions: [
@@ -355,7 +383,7 @@ class _PartidasScreenState extends State<PartidasScreen> {
                 return Container(
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: cardColor,
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
@@ -369,26 +397,26 @@ class _PartidasScreenState extends State<PartidasScreen> {
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(vertical: 8),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFE5E9F2),
-                          borderRadius: BorderRadius.vertical(
+                        decoration: BoxDecoration(
+                          color: stripColor,
+                          borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(16),
                           ),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.calendar_today,
                               size: 14,
-                              color: Color(0xFF0B1F4D),
+                              color: secondaryTextColor,
                             ),
                             const SizedBox(width: 8),
                             Text(
                               partida.data,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF0B1F4D),
+                                color: secondaryTextColor,
                               ),
                             ),
                           ],
@@ -402,9 +430,10 @@ class _PartidasScreenState extends State<PartidasScreen> {
                               child: Text(
                                 _nomeEquipe(partida.idEquipeCasa),
                                 textAlign: TextAlign.right,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
+                                  color: primaryTextColor,
                                 ),
                               ),
                             ),
@@ -433,9 +462,10 @@ class _PartidasScreenState extends State<PartidasScreen> {
                               child: Text(
                                 _nomeEquipe(partida.idEquipeVisitante),
                                 textAlign: TextAlign.left,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
+                                  color: primaryTextColor,
                                 ),
                               ),
                             ),
@@ -458,8 +488,8 @@ class _PartidasScreenState extends State<PartidasScreen> {
                               ),
                               IconButton(
                                 icon: const Icon(
-                                  Icons.delete_outline,
-                                  color: Colors.redAccent,
+                                  Icons.delete,
+                                  color: Colors.grey,
                                 ),
                                 onPressed: () => _confirmarExclusao(partida),
                               ),

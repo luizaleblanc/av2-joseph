@@ -36,13 +36,12 @@ CREATE TABLE `partidas` (
   CONSTRAINT `partidas_ibfk_2` FOREIGN KEY (`id_selecao_visitante_fk`) REFERENCES `selecao` (`id_selecao`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- 4. TABELA DE USUÁRIOS (Login, Cadastro e Perfil)
+-- 4. TABELA DE USUÁRIOS (Login e Cadastro)
 CREATE TABLE `usuario` (
   `id_usuario` INT(11) NOT NULL AUTO_INCREMENT,
   `nome` VARCHAR(100) NOT NULL,
   `email` VARCHAR(100) NOT NULL,
   `senha` VARCHAR(255) NOT NULL,
-  `tipo_usuario` ENUM('ADM') DEFAULT 'ADM',
   `pergunta_seguranca` VARCHAR(255) NOT NULL,
   `resposta_seguranca` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`id_usuario`),

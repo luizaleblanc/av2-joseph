@@ -3,12 +3,14 @@ class JogadorModel {
   final String nome;
   final String posicao;
   final int idEquipe;
+  final String? nomeSelecao;
 
   JogadorModel({
     required this.id,
     required this.nome,
     required this.posicao,
     required this.idEquipe,
+    this.nomeSelecao,
   });
 
   factory JogadorModel.fromJson(Map<String, dynamic> json) {
@@ -17,6 +19,7 @@ class JogadorModel {
       nome: json['nomeJogador'] ?? 'Sem Nome',
       posicao: json['posicaoJogador'] ?? 'N/A',
       idEquipe: int.tryParse(json['idTimeFk']?.toString() ?? '0') ?? 0,
+      nomeSelecao: json['nomeSelecao'],
     );
   }
 
@@ -26,6 +29,7 @@ class JogadorModel {
       'nomeJogador': nome,
       'posicaoJogador': posicao,
       'idTimeFk': idEquipe,
+      'nomeSelecao': nomeSelecao,
     };
   }
 }

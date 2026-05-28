@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../core/network/api_service.dart';
-import '../../auth/domain/perfil_usuario.dart';
+import '../../../core/widgets/copa_banner_header.dart';
+import '../../../core/widgets/theme_mode_button.dart';
 import '../../auth/presentation/login_screen.dart';
-import '../../auth/presentation/perfil_screen.dart';
 import '../../equipes/presentation/equipes_screen.dart';
 import '../../jogadores/presentation/jogadores_screen.dart';
 import '../../campeonato/presentation/partidas_screen.dart';
@@ -10,9 +10,7 @@ import '../../campeonato/presentation/eliminatorias_screen.dart';
 import 'noticias_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
-  final PerfilUsuario perfil;
-
-  const DashboardScreen({super.key, required this.perfil});
+  const DashboardScreen({super.key});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -21,7 +19,6 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   final ApiService _apiService = ApiService();
 
-  late PerfilUsuario _perfilAtual;
   int _totalEquipes = 0;
   int _totalJogadores = 0;
   int _totalPartidas = 0;
@@ -29,12 +26,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final int _totalGrupos = 12;
   bool _carregando = true;
 
-  bool get _isAdmin => _perfilAtual == PerfilUsuario.administrador;
-
   @override
   void initState() {
     super.initState();
-    _perfilAtual = widget.perfil;
     _carregarDados();
   }
 
@@ -65,8 +59,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final panelColor = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final primaryTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
+    final secondaryPanelColor = isDark
+        ? const Color(0xFF24324A)
+        : const Color(0xFFF1F5F9);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       drawer: _buildDrawer(context),
       body: _carregando
           ? const Center(child: CircularProgressIndicator())
@@ -123,24 +124,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ? MediaQuery.of(context).padding.top + 8
                               : 16,
                           right: 16,
-                          child: Material(
-                            color: Colors.white.withValues(alpha: 0.9),
-                            shape: const CircleBorder(),
-                            elevation: 2,
-                            child: InkWell(
-                              customBorder: const CircleBorder(),
-                              hoverColor: const Color(
-                                0xFF0B5FFF,
-                              ).withValues(alpha: 0.15),
-                              onTap: _carregarDados,
-                              child: const Padding(
-                                padding: EdgeInsets.all(10.0),
-                                child: Icon(
-                                  Icons.refresh,
-                                  color: Color(0xFF0B1F4D),
+                          child: Column(
+                            children: [
+                              const HeaderCircleIconButton(
+                                child: ThemeModeButton(),
+                              ),
+                              const SizedBox(height: 8),
+                              HeaderCircleIconButton(
+                                child: Tooltip(
+                                  message: 'Atualizar',
+                                  child: SizedBox.square(
+                                    dimension: 44,
+                                    child: InkWell(
+                                      customBorder: const CircleBorder(),
+                                      onTap: _carregarDados,
+                                      child: const Icon(
+                                        Icons.refresh,
+                                        color: Color(0xFF0B1F4D),
+                                        size: 24,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
+                            ],
                           ),
                         ),
                       ],
@@ -159,11 +166,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 child: ElevatedButton(
                                   onPressed: () {},
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.white,
-                                    foregroundColor: const Color(0xFF0B1F4D),
+                                    backgroundColor: panelColor,
+                                    foregroundColor: primaryTextColor,
                                     elevation: 0,
-                                    side: const BorderSide(
-                                      color: Color(0xFFE2E8F0),
+                                    side: BorderSide(
+                                      color: isDark
+                                          ? const Color(0xFF35558D)
+                                          : const Color(0xFFE2E8F0),
                                     ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
@@ -185,8 +194,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 child: TextButton(
                                   onPressed: () {},
                                   style: TextButton.styleFrom(
-                                    backgroundColor: const Color(0xFFF1F5F9),
-                                    foregroundColor: Colors.blueGrey,
+                                    backgroundColor: secondaryPanelColor,
+                                    foregroundColor: isDark
+                                        ? const Color(0xFFD7E3FF)
+                                        : Colors.blueGrey,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
@@ -231,12 +242,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             isLive: false,
                           ),
                           const SizedBox(height: 32),
-                          const Text(
+                          Text(
                             'Visão Geral',
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w800,
-                              color: Color(0xFF0F172A),
+                              color: primaryTextColor,
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -306,12 +317,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required String statusText,
     required bool isLive,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final primaryText = isDark ? Colors.white : const Color(0xFF0F172A);
+    final secondaryText = isDark
+        ? const Color(0xFFD7E3FF)
+        : const Color(0xFF64748B);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF24324A) : const Color(0xFFE2E8F0),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -342,18 +362,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       Text(
                         nameA,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
-                          color: Color(0xFF0F172A),
+                          color: primaryText,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         groupA,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: Color(0xFF64748B),
+                          color: secondaryText,
                         ),
                       ),
                     ],
@@ -369,7 +389,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 style: TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: isLive ? 22 : 18,
-                  color: const Color(0xFF0F172A),
+                  color: primaryText,
                 ),
               ),
               const SizedBox(height: 2),
@@ -380,7 +400,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   fontWeight: FontWeight.bold,
                   color: isLive
                       ? const Color(0xFFE61E4D)
-                      : const Color(0xFF64748B),
+                      : secondaryText,
                 ),
               ),
               if (isLive) ...[
@@ -417,18 +437,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       Text(
                         nameB,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
-                          color: Color(0xFF0F172A),
+                          color: primaryText,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         groupB,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: Color(0xFF64748B),
+                          color: secondaryText,
                         ),
                       ),
                     ],
@@ -458,11 +478,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
     Color cor,
     IconData icone,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor = isDark
+        ? const Color(0xFF24324A)
+        : const Color(0xFFF1F5F9);
+    final primaryText = isDark ? Colors.white : const Color(0xFF0F172A);
+    final secondaryText = isDark
+        ? const Color(0xFFD7E3FF)
+        : const Color(0xFF64748B);
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFF1F5F9)),
+        border: Border.all(color: borderColor),
         boxShadow: [
           BoxShadow(
             color: cor.withValues(alpha: 0.035),
@@ -497,18 +527,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     Text(
                       valor,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 19,
                         fontWeight: FontWeight.w900,
-                        color: Color(0xFF0F172A),
+                        color: primaryText,
                       ),
                     ),
                     Text(
                       titulo,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF64748B),
+                        color: secondaryText,
                       ),
                     ),
                   ],
@@ -540,25 +570,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 8),
               children: [
-                _buildDrawerItem(context, Icons.person_outline, 'Perfil', () {
-                  Navigator.push<PerfilUsuario>(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => PerfilScreen(perfil: _perfilAtual),
-                    ),
-                  ).then((novoPerfil) {
-                    if (novoPerfil != null) {
-                      setState(() {
-                        _perfilAtual = novoPerfil;
-                      });
-                    }
-                  });
-                }),
                 _buildDrawerItem(context, Icons.flag_outlined, 'Seleções', () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => EquipesScreen(canEdit: _isAdmin),
+                      builder: (_) => const EquipesScreen(canEdit: true),
                     ),
                   ).then((_) => _carregarDados());
                 }),
@@ -570,7 +586,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => JogadoresScreen(canEdit: _isAdmin),
+                        builder: (_) => const JogadoresScreen(canEdit: true),
                       ),
                     ).then((_) => _carregarDados());
                   },
@@ -579,7 +595,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => PartidasScreen(canEdit: _isAdmin),
+                      builder: (_) => const PartidasScreen(canEdit: true),
                     ),
                   ).then((_) => _carregarDados());
                 }),
@@ -604,7 +620,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => NoticiasScreen(canEdit: _isAdmin),
+                        builder: (_) => const NoticiasScreen(canEdit: true),
                       ),
                     );
                   },

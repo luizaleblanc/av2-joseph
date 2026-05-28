@@ -6,7 +6,7 @@
 
 
 
-Plataforma full-stack desenvolvida para o acompanhamento e gestão de dados da Copa do Mundo 2026. O sistema oferece uma interface responsiva focada na experiência do usuário, com controle de acesso baseado em perfis (Administrador e Telespectador) e painéis de dados em tempo real.
+Plataforma full-stack desenvolvida para o acompanhamento e gestão de dados da Copa do Mundo 2026. O sistema oferece uma interface responsiva focada na experiência do usuário, com permissões administrativas para todos os usuários e painéis de dados em tempo real.
 
 
 
@@ -26,7 +26,7 @@ A estrutura de diretórios principal está organizada da seguinte forma:
 
 * **`lib/features/`**: Módulos independentes da aplicação.
 
-    * `auth/`: Autenticação, login, cadastro e controle de perfis.
+    * `auth/`: Autenticação, login e cadastro.
 
     * `campeonato/`: Gestão de partidas, placares e árvore de eliminatórias (chaveamento).
 
@@ -46,11 +46,9 @@ O back-end é suportado por uma API REST desenvolvida em **Python** (Flask/FastA
 
 
 
-* **Controle de Acesso Baseado em Perfil (RBAC)**: 
+* **Permissões Administrativas para Todos**: 
 
-    * **Administrador**: Permissão para editar seleções, jogadores, atualizar placares, gerenciar o chaveamento e publicar notícias.
-
-    * **Telespectador**: Acesso de leitura para acompanhar jogos, estatísticas e ler notícias.
+    * Todos os usuários podem editar seleções, jogadores, atualizar placares, gerenciar o chaveamento e publicar notícias.
 
 * **Dashboard Interativo**: Visão geral do torneio com indicadores quantitativos (total de seleções, jogadores, partidas, gols e grupos).
 

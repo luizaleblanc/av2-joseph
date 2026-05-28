@@ -7,10 +7,10 @@ class EliminatoriasScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Color(0xFFF4F7FB),
-      appBar: CopaBannerHeader(title: 'Chaveamento'),
-      body: BracketDiagram(),
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: const CopaBannerHeader(title: 'Chaveamento'),
+      body: const BracketDiagram(),
     );
   }
 }
@@ -231,8 +231,12 @@ class _BracketDiagramState extends State<BracketDiagram> {
   }
 
   Widget _buildZoomControls(Size viewportSize) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Material(
-      color: Colors.white.withValues(alpha: 0.95),
+      color: (isDark ? const Color(0xFF142B5F) : Colors.white).withValues(
+        alpha: 0.95,
+      ),
       borderRadius: BorderRadius.circular(12),
       elevation: 6,
       child: Padding(
@@ -292,6 +296,8 @@ class _BracketDiagramState extends State<BracketDiagram> {
   }
 
   Widget _buildPhaseTitle(String title, String subtitle, Rect rect) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Positioned.fromRect(
       rect: rect,
       child: Column(
@@ -299,8 +305,8 @@ class _BracketDiagramState extends State<BracketDiagram> {
         children: [
           Text(
             title,
-            style: const TextStyle(
-              color: Color(0xFF0B3F7A),
+            style: TextStyle(
+              color: isDark ? const Color(0xFFD7E3FF) : const Color(0xFF0B3F7A),
               fontSize: 14,
               fontWeight: FontWeight.w900,
             ),
@@ -387,6 +393,8 @@ class _BracketDiagramState extends State<BracketDiagram> {
   }
 
   Widget _buildThirdPlaceCard(Rect rect) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Positioned.fromRect(
       rect: rect,
       child: Column(
@@ -399,10 +407,10 @@ class _BracketDiagramState extends State<BracketDiagram> {
               fontWeight: FontWeight.w900,
             ),
           ),
-          const Text(
+          Text(
             'Disputado pelos perdedores das semifinais',
             style: TextStyle(
-              color: Color(0xFF1F2937),
+              color: isDark ? const Color(0xFFD7E3FF) : const Color(0xFF1F2937),
               fontSize: 11,
               fontWeight: FontWeight.w600,
             ),
@@ -418,12 +426,18 @@ class _BracketDiagramState extends State<BracketDiagram> {
   }
 
   Widget _smallFinalLine(String text) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Row(
       children: [
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+            style: TextStyle(
+              color: isDark ? Colors.white : const Color(0xFF111827),
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+            ),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -432,7 +446,7 @@ class _BracketDiagramState extends State<BracketDiagram> {
           width: 92,
           height: 18,
           decoration: BoxDecoration(
-            color: const Color(0xFFDDF6FF),
+            color: isDark ? const Color(0xFF1D3A72) : const Color(0xFFDDF6FF),
             borderRadius: BorderRadius.circular(5),
           ),
         ),
@@ -441,13 +455,15 @@ class _BracketDiagramState extends State<BracketDiagram> {
   }
 
   Widget _buildLegend(Rect rect) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Positioned.fromRect(
       rect: rect,
-      child: const Text(
+      child: Text(
         'Como funciona: avançam 1º e 2º de cada grupo, mais os 8 melhores terceiros. '
         'A partir da segunda fase, cada confronto é eliminatório em jogo único.',
         style: TextStyle(
-          color: Color(0xFF334155),
+          color: isDark ? const Color(0xFFD7E3FF) : const Color(0xFF334155),
           fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
@@ -470,10 +486,12 @@ class _ZoomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return IconButton(
       tooltip: tooltip,
       icon: Icon(icon),
-      color: const Color(0xFF0B3F7A),
+      color: isDark ? const Color(0xFFD7E3FF) : const Color(0xFF0B3F7A),
       iconSize: 22,
       constraints: const BoxConstraints.tightFor(width: 38, height: 38),
       padding: EdgeInsets.zero,
@@ -498,9 +516,18 @@ class _MatchCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final borderColor = accent
         ? const Color(0xFFFF4B00)
+        : isDark
+        ? const Color(0xFF35558D)
         : const Color(0xFFD5E2EC);
+    final cardColor = isDark ? const Color(0xFF142B5F) : Colors.white;
+    final labelColor = accent
+        ? const Color(0xFFFF4B00)
+        : isDark
+        ? const Color(0xFFD7E3FF)
+        : const Color(0xFF0B3F7A);
 
     return Column(
       crossAxisAlignment: isRightSide
@@ -510,7 +537,7 @@ class _MatchCard extends StatelessWidget {
         Text(
           match.label,
           style: TextStyle(
-            color: accent ? const Color(0xFFFF4B00) : const Color(0xFF0B3F7A),
+            color: labelColor,
             fontSize: compact ? 10 : 11,
             fontWeight: FontWeight.w900,
           ),
@@ -518,7 +545,7 @@ class _MatchCard extends StatelessWidget {
         const SizedBox(height: 2),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: cardColor,
             borderRadius: BorderRadius.circular(7),
             border: Border.all(color: borderColor),
             boxShadow: [
@@ -532,7 +559,10 @@ class _MatchCard extends StatelessWidget {
           child: Column(
             children: [
               _TeamLine(text: match.home, compact: compact),
-              Divider(height: 1, color: Colors.grey.shade100),
+              Divider(
+                height: 1,
+                color: isDark ? const Color(0xFF35558D) : Colors.grey.shade100,
+              ),
               _TeamLine(text: match.away, compact: compact),
             ],
           ),
@@ -550,6 +580,8 @@ class _TeamLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return SizedBox(
       height: compact ? 21 : 23,
       child: Row(
@@ -557,9 +589,11 @@ class _TeamLine extends StatelessWidget {
           Container(
             width: 18,
             height: double.infinity,
-            decoration: const BoxDecoration(
-              color: Color(0xFFE0F7FF),
-              borderRadius: BorderRadius.horizontal(left: Radius.circular(6)),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1D3A72) : const Color(0xFFE0F7FF),
+              borderRadius: const BorderRadius.horizontal(
+                left: Radius.circular(6),
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -567,7 +601,7 @@ class _TeamLine extends StatelessWidget {
             child: Text(
               text,
               style: TextStyle(
-                color: const Color(0xFF111827),
+                color: isDark ? Colors.white : const Color(0xFF111827),
                 fontSize: compact ? 10 : 11,
                 fontWeight: FontWeight.w700,
               ),

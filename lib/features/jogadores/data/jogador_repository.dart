@@ -17,11 +17,27 @@ class JogadorRepository {
     }
   }
 
+  Future<List<JogadorModel>> obterJogadoresPorEquipe(int idEquipe) async {
+    try {
+      final dadosBrutos = await _apiService.fetchJogadores(idSelecao: idEquipe);
+      return dadosBrutos
+          .map((json) => JogadorModel.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
   Future<bool> salvarJogador(String nome, String posicao, int idEquipe) {
     return _apiService.cadastrarJogador(nome, posicao, idEquipe);
   }
 
-  Future<bool> atualizarJogador(int id, String nome, String posicao, int idEquipe) {
+  Future<bool> atualizarJogador(
+    int id,
+    String nome,
+    String posicao,
+    int idEquipe,
+  ) {
     return _apiService.atualizarJogador(id, nome, posicao, idEquipe);
   }
 

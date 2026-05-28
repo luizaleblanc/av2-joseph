@@ -11,6 +11,86 @@ class ApiService {
     return 'http://localhost:5000';
   }
 
+  Future<bool> cadastrarUsuario({
+    required String nome,
+    required String email,
+    required String senha,
+    required String perguntaSeguranca,
+    required String respostaSeguranca,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/cadastro'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'nome': nome,
+          'email': email,
+          'senha': senha,
+          'pergunta_seguranca': perguntaSeguranca,
+          'resposta_seguranca': respostaSeguranca,
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = json.decode(response.body) as Map<String, dynamic>;
+        return body['code'] == 201 || body['code'] == 200;
+      }
+    } catch (e) {
+      debugPrint('Erro ao cadastrar usuario: $e');
+    }
+    return false;
+  }
+
+  Future<bool> loginUsuario({
+    required String email,
+    required String senha,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'email': email,
+          'senha': senha,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final body = json.decode(response.body) as Map<String, dynamic>;
+        return body['code'] == 200;
+      }
+    } catch (e) {
+      debugPrint('Erro ao fazer login: $e');
+    }
+    return false;
+  }
+
+  Future<bool> validarRecuperacao({
+    required String email,
+    required String perguntaSeguranca,
+    required String respostaSeguranca,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/recuperar/validar'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'email': email,
+          'pergunta_seguranca': perguntaSeguranca,
+          'resposta_seguranca': respostaSeguranca,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final body = json.decode(response.body) as Map<String, dynamic>;
+        return body['code'] == 200;
+      }
+    } catch (e) {
+      debugPrint('Erro ao validar recuperacao: $e');
+    }
+    return false;
+  }
+
   Future<List<dynamic>> fetchEquipes() async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/listaequipes'));
@@ -69,9 +149,14 @@ class ApiService {
     }
   }
 
-  Future<List<dynamic>> fetchJogadores() async {
+  Future<List<dynamic>> fetchJogadores({int? idSelecao}) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/listajogadores'));
+      final uri = Uri.parse('$baseUrl/listajogadores').replace(
+        queryParameters: idSelecao == null
+            ? null
+            : {'idSelecao': idSelecao.toString()},
+      );
+      final response = await http.get(uri);
       if (response.statusCode == 200) {
         return json.decode(response.body) as List<dynamic>;
       }
