@@ -77,106 +77,125 @@ class _BracketDiagramState extends State<BracketDiagram> {
           });
         }
 
-        return InteractiveViewer(
-          transformationController: _transformationController,
-          constrained: false,
-          boundaryMargin: const EdgeInsets.all(280),
-          minScale: 0.35,
-          maxScale: 1.8,
-          child: SizedBox(
-            width: _diagramWidth,
-            height: _diagramHeight,
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: CustomPaint(painter: _BracketPainter(layout)),
-                ),
-                _buildPhaseTitle(
-                  'segunda fase',
-                  '32 seleções',
-                  layout.leftTitle1,
-                ),
-                _buildPhaseTitle(
-                  'oitavas de final',
-                  '16 seleções',
-                  layout.leftTitle2,
-                ),
-                _buildPhaseTitle(
-                  'quartas de final',
-                  '8 seleções',
-                  layout.leftTitle3,
-                ),
-                _buildPhaseTitle('semifinal', '4 seleções', layout.leftTitle4),
-                _buildPhaseTitle('semifinal', '4 seleções', layout.rightTitle4),
-                _buildPhaseTitle(
-                  'quartas de final',
-                  '8 seleções',
-                  layout.rightTitle3,
-                ),
-                _buildPhaseTitle(
-                  'oitavas de final',
-                  '16 seleções',
-                  layout.rightTitle2,
-                ),
-                _buildPhaseTitle(
-                  'segunda fase',
-                  '32 seleções',
-                  layout.rightTitle1,
-                ),
-                ..._buildRoundCards(
-                  leftSecond,
-                  layout.leftSecond,
-                  isRightSide: false,
-                ),
-                ..._buildPlaceholderCards(
-                  'Vencedor',
-                  layout.leftOitavas,
-                  startIndex: 1,
-                ),
-                ..._buildPlaceholderCards(
-                  'Vencedor Oitavas',
-                  layout.leftQuartas,
-                  startIndex: 1,
-                ),
-                _buildPositionedMatch(
-                  layout.leftSemi,
-                  const _MatchSlot(
-                    'Semifinal 1',
-                    'Vencedor Quartas 1',
-                    'Vencedor Quartas 2',
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: InteractiveViewer(
+                transformationController: _transformationController,
+                constrained: false,
+                boundaryMargin: const EdgeInsets.all(280),
+                minScale: 0.35,
+                maxScale: 1.8,
+                child: SizedBox(
+                  width: _diagramWidth,
+                  height: _diagramHeight,
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: CustomPaint(painter: _BracketPainter(layout)),
+                      ),
+                      _buildPhaseTitle(
+                        'segunda fase',
+                        '32 seleções',
+                        layout.leftTitle1,
+                      ),
+                      _buildPhaseTitle(
+                        'oitavas de final',
+                        '16 seleções',
+                        layout.leftTitle2,
+                      ),
+                      _buildPhaseTitle(
+                        'quartas de final',
+                        '8 seleções',
+                        layout.leftTitle3,
+                      ),
+                      _buildPhaseTitle(
+                        'semifinal',
+                        '4 seleções',
+                        layout.leftTitle4,
+                      ),
+                      _buildPhaseTitle(
+                        'semifinal',
+                        '4 seleções',
+                        layout.rightTitle4,
+                      ),
+                      _buildPhaseTitle(
+                        'quartas de final',
+                        '8 seleções',
+                        layout.rightTitle3,
+                      ),
+                      _buildPhaseTitle(
+                        'oitavas de final',
+                        '16 seleções',
+                        layout.rightTitle2,
+                      ),
+                      _buildPhaseTitle(
+                        'segunda fase',
+                        '32 seleções',
+                        layout.rightTitle1,
+                      ),
+                      ..._buildRoundCards(
+                        leftSecond,
+                        layout.leftSecond,
+                        isRightSide: false,
+                      ),
+                      ..._buildPlaceholderCards(
+                        'Vencedor',
+                        layout.leftOitavas,
+                        startIndex: 1,
+                      ),
+                      ..._buildPlaceholderCards(
+                        'Vencedor Oitavas',
+                        layout.leftQuartas,
+                        startIndex: 1,
+                      ),
+                      _buildPositionedMatch(
+                        layout.leftSemi,
+                        const _MatchSlot(
+                          'Semifinal 1',
+                          'Vencedor Quartas 1',
+                          'Vencedor Quartas 2',
+                        ),
+                        accent: true,
+                      ),
+                      ..._buildRoundCards(
+                        rightSecond,
+                        layout.rightSecond,
+                        isRightSide: true,
+                      ),
+                      ..._buildPlaceholderCards(
+                        'Vencedor',
+                        layout.rightOitavas,
+                        startIndex: 9,
+                      ),
+                      ..._buildPlaceholderCards(
+                        'Vencedor Oitavas',
+                        layout.rightQuartas,
+                        startIndex: 5,
+                      ),
+                      _buildPositionedMatch(
+                        layout.rightSemi,
+                        const _MatchSlot(
+                          'Semifinal 2',
+                          'Vencedor Quartas 3',
+                          'Vencedor Quartas 4',
+                        ),
+                        accent: true,
+                      ),
+                      _buildFinalCard(layout.finalCard),
+                      _buildThirdPlaceCard(layout.thirdPlaceCard),
+                      _buildLegend(layout.legend),
+                    ],
                   ),
-                  accent: true,
                 ),
-                ..._buildRoundCards(
-                  rightSecond,
-                  layout.rightSecond,
-                  isRightSide: true,
-                ),
-                ..._buildPlaceholderCards(
-                  'Vencedor',
-                  layout.rightOitavas,
-                  startIndex: 9,
-                ),
-                ..._buildPlaceholderCards(
-                  'Vencedor Oitavas',
-                  layout.rightQuartas,
-                  startIndex: 5,
-                ),
-                _buildPositionedMatch(
-                  layout.rightSemi,
-                  const _MatchSlot(
-                    'Semifinal 2',
-                    'Vencedor Quartas 3',
-                    'Vencedor Quartas 4',
-                  ),
-                  accent: true,
-                ),
-                _buildFinalCard(layout.finalCard),
-                _buildThirdPlaceCard(layout.thirdPlaceCard),
-                _buildLegend(layout.legend),
-              ],
+              ),
             ),
-          ),
+            Positioned(
+              top: 16,
+              right: 16,
+              child: _buildZoomControls(viewportSize),
+            ),
+          ],
         );
       },
     );
@@ -194,6 +213,52 @@ class _BracketDiagramState extends State<BracketDiagram> {
     _transformationController.value = Matrix4.identity()
       ..translateByDouble(dx, dy, 0.0, 1.0)
       ..scaleByDouble(fitScale, fitScale, fitScale, 1.0);
+  }
+
+  void _setDiagramScale(Size viewportSize, double scale) {
+    final safeScale = scale.clamp(0.35, 1.8).toDouble();
+    final dx = (viewportSize.width - (_diagramWidth * safeScale)) / 2;
+    final dy = (viewportSize.height - (_diagramHeight * safeScale)) / 2;
+
+    _transformationController.value = Matrix4.identity()
+      ..translateByDouble(dx, dy, 0.0, 1.0)
+      ..scaleByDouble(safeScale, safeScale, safeScale, 1.0);
+  }
+
+  void _zoomBy(double factor, Size viewportSize) {
+    final currentScale = _transformationController.value.getMaxScaleOnAxis();
+    _setDiagramScale(viewportSize, currentScale * factor);
+  }
+
+  Widget _buildZoomControls(Size viewportSize) {
+    return Material(
+      color: Colors.white.withValues(alpha: 0.95),
+      borderRadius: BorderRadius.circular(12),
+      elevation: 6,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _ZoomButton(
+              tooltip: 'Diminuir zoom',
+              icon: Icons.zoom_out,
+              onPressed: () => _zoomBy(0.88, viewportSize),
+            ),
+            _ZoomButton(
+              tooltip: 'Recentralizar',
+              icon: Icons.center_focus_strong,
+              onPressed: () => _centerDiagram(viewportSize),
+            ),
+            _ZoomButton(
+              tooltip: 'Ampliar zoom',
+              icon: Icons.zoom_in,
+              onPressed: () => _zoomBy(1.12, viewportSize),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   List<Widget> _buildRoundCards(
@@ -388,6 +453,32 @@ class _BracketDiagramState extends State<BracketDiagram> {
         ),
         textAlign: TextAlign.center,
       ),
+    );
+  }
+}
+
+class _ZoomButton extends StatelessWidget {
+  final String tooltip;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  const _ZoomButton({
+    required this.tooltip,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      tooltip: tooltip,
+      icon: Icon(icon),
+      color: const Color(0xFF0B3F7A),
+      iconSize: 22,
+      constraints: const BoxConstraints.tightFor(width: 38, height: 38),
+      padding: EdgeInsets.zero,
+      splashRadius: 20,
+      onPressed: onPressed,
     );
   }
 }

@@ -4,12 +4,16 @@ class CopaBannerHeader extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final List<Widget> actions;
   final VoidCallback? onBack;
+  final IconData leadingIcon;
+  final String leadingTooltip;
 
   const CopaBannerHeader({
     super.key,
     required this.title,
     this.actions = const [],
     this.onBack,
+    this.leadingIcon = Icons.arrow_back,
+    this.leadingTooltip = 'Voltar',
   });
 
   @override
@@ -42,8 +46,8 @@ class CopaBannerHeader extends StatelessWidget implements PreferredSizeWidget {
                   : 16,
               left: 16,
               child: _HeaderCircleButton(
-                tooltip: 'Voltar',
-                icon: Icons.arrow_back,
+                tooltip: leadingTooltip,
+                icon: leadingIcon,
                 onTap: onBack ?? () => Navigator.maybePop(context),
               ),
             ),
