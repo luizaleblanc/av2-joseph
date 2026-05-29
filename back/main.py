@@ -1,3 +1,4 @@
+
 import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS 
@@ -5,9 +6,10 @@ import pymysql
 from dotenv import load_dotenv
 
 load_dotenv()
+"""Ponto de entrada do backend: cria o app e inicia o servidor Flask."""
 
-app = Flask(__name__)
-CORS(app) 
+from app import create_app
+
 
 def conectaBanco():
     return pymysql.connect(
@@ -19,9 +21,7 @@ def conectaBanco():
         charset='utf8mb4'
     )
 
-##################### AUTENTICAÇÃO #############################
 
-# REGISTRO DE USUÁRIO
 @app.route('/cadastro', methods=['POST'])
 def cadastro():
     dados = request.get_json()
@@ -473,3 +473,9 @@ def consultaChaveamento():
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")
+
+app = create_app()
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
